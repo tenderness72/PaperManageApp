@@ -1,0 +1,86 @@
+<Page x:Class="PaperManagementApp.Views.RisImportView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:PaperManagementApp.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="650" d:DesignWidth="900"
+      Title="RISファイルインポート">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ヘッダー -->
+        <StackPanel Grid.Row="0" Margin="20,20,20,10">
+            <TextBlock Text="RISファイルインポート" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
+            <TextBlock Text="学術文献データベースから出力したRISファイルから、論文情報を一括インポートします。" 
+                       TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+            <!-- ファイル選択部分 -->
+            <Grid Margin="0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="FilePathTextBox" 
+                         IsReadOnly="True" 
+                         Padding="5"
+                         Margin="0,0,5,0"/>
+                <Button Grid.Column="1" 
+                        Content="参照..." 
+                        Click="BrowseButton_Click"
+                        Padding="15,5"/>
+            </Grid>
+        </StackPanel>
+
+        <!-- プレビュー部分 -->
+        <Grid Grid.Row="1" Margin="20,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="インポートプレビュー" FontWeight="Bold" Margin="0,0,0,5"/>
+
+            <DataGrid x:Name="PapersDataGrid" 
+                      Grid.Row="1"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      AlternatingRowBackground="#F0F0F0"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      CanUserResizeRows="False"
+                      HeadersVisibility="Column"
+                      SelectionMode="Extended"
+                      SelectionUnit="FullRow">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="タイトル" Binding="{Binding Title}" Width="*"/>
+                    <DataGridTextColumn Header="著者" Binding="{Binding Authors}" Width="150"/>
+                    <DataGridTextColumn Header="出版年" Binding="{Binding Year}" Width="60"/>
+                    <DataGridTextColumn Header="雑誌名" Binding="{Binding Journal}" Width="150"/>
+                    <DataGridTextColumn Header="タイプ" Binding="{Binding PaperType}" Width="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!-- 操作ボタン -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,10,20,20">
+            <Button Content="キャンセル" 
+                    Click="CancelButton_Click"
+                    Margin="0,0,10,0"
+                    Padding="15,5"/>
+            <Button Content="インポート" 
+                    Click="ImportButton_Click"
+                    Padding="15,5" 
+                    Background="#2ecc71" 
+                    Foreground="White" 
+                    BorderThickness="0"
+                    IsEnabled="{Binding ElementName=PapersDataGrid, Path=Items.Count, Converter={StaticResource CountToVisibilityConverter}}"/>
+        </StackPanel>
+    </Grid>
+</Page>

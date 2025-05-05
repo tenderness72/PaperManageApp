@@ -135,7 +135,7 @@ namespace PaperManagementApp
                 }
 
                 // 選択されたジャーナル
-                string selectedJournal = null;
+                string? selectedJournal = null;
                 if (JournalFilterComboBox.SelectedIndex > 0)
                 {
                     var journalItem = JournalFilterComboBox.SelectedItem as ComboBoxItem;
@@ -146,7 +146,7 @@ namespace PaperManagementApp
                 }
 
                 // 選択された臨床領域
-                string selectedClinicalArea = null;
+                string? selectedClinicalArea = null;
                 if (ClinicalAreaFilterComboBox.SelectedIndex > 0)
                 {
                     var areaItem = ClinicalAreaFilterComboBox.SelectedItem as ComboBoxItem;

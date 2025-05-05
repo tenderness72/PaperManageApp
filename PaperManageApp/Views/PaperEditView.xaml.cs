@@ -2,9 +2,11 @@
 using PaperManagementApp.Models;
 using PaperManagementApp.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Navigation;
 
 namespace PaperManagementApp.Views
@@ -12,9 +14,16 @@ namespace PaperManagementApp.Views
     public partial class PaperEditView : Page
     {
         private PaperService _paperService;
+        private RisImportService _risImportService;
         private Paper _currentPaper;
         private bool _isEditMode = false;
         private string _pdfFilePath = null;
+
+        // 新規モードかどうかを示すプロパティ（ボタン表示切替用）
+        public bool IsNewMode
+        {
+            get { return !_isEditMode; }
+        }
 
         // コンストラクタ（新規追加モード）
         public PaperEditView()
@@ -22,11 +31,18 @@ namespace PaperManagementApp.Views
             InitializeComponent();
 
             _paperService = new PaperService();
+            _risImportService = new RisImportService();
             _currentPaper = new Paper();
             _isEditMode = false;
 
             HeaderTextBlock.Text = "新規論文の追加";
             PaperTypeComboBox.SelectedIndex = 0; // デフォルトで「研究論文」を選択
+
+            // データコンテキストを設定（ボタン表示のための）
+            this.DataContext = this;
+
+            // RISインポートボタンを表示
+            ImportRisButton.Visibility = Visibility.Visible;
         }
 
         // コンストラクタ（編集モード）
@@ -35,11 +51,102 @@ namespace PaperManagementApp.Views
             InitializeComponent();
 
             _paperService = new PaperService();
+            _risImportService = new RisImportService();
             _isEditMode = true;
 
             LoadPaper(paperId);
 
             HeaderTextBlock.Text = "論文の編集";
+
+            // データコンテキストを設定（ボタン表示のための）
+            this.DataContext = this;
+
+            // 編集モードではRISインポートボタンを非表示
+            ImportRisButton.Visibility = Visibility.Collapsed;
+        }
+
+        // コンストラクタ（RISインポートモード）
+        public PaperEditView(Paper importedPaper)
+        {
+            InitializeComponent();
+
+            _paperService = new PaperService();
+            _risImportService = new RisImportService();
+            _currentPaper = importedPaper;
+            _isEditMode = false;
+
+            HeaderTextBlock.Text = "RISから論文を追加";
+
+            // データコンテキストを設定（ボタン表示のための）
+            this.DataContext = this;
+
+            // RISインポートボタンを非表示（既にインポート済みのため）
+            ImportRisButton.Visibility = Visibility.Collapsed;
+
+            // フォームに値を設定
+            PopulateFormFromPaper(importedPaper);
+        }
+
+        // RISインポートボタンクリック
+        private void ImportRisButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var openFileDialog = new OpenFileDialog
+                {
+                    Filter = "RISファイル (*.ris)|*.ris|すべてのファイル (*.*)|*.*",
+                    Title = "RISファイルを選択"
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    // RISファイルを読み込み
+                    List<Paper> importedPapers = _risImportService.ImportFromRisFile(openFileDialog.FileName);
+
+                    if (importedPapers.Count == 0)
+                    {
+                        MessageBox.Show("RISファイルから論文情報を読み込めませんでした。",
+                            "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    // 複数の論文がある場合は選択ダイアログを表示
+                    if (importedPapers.Count > 1)
+                    {
+                        // 論文選択ダイアログを表示
+                        var selectedPaper = ShowPaperSelectionDialog(importedPapers);
+                        if (selectedPaper != null)
+                        {
+                            // 現在の画面に選択した論文情報を表示
+                            PopulateFormFromPaper(selectedPaper);
+                        }
+                    }
+                    else
+                    {
+                        // 1件のみの場合は直接表示
+                        PopulateFormFromPaper(importedPapers[0]);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"RISファイルの読み込み中にエラーが発生しました: {ex.Message}",
+                    "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // 論文選択ダイアログを表示
+        private Paper ShowPaperSelectionDialog(List<Paper> papers)
+        {
+            // 論文選択ダイアログを表示
+            var dialog = new RisImportSelectDialog(papers);
+            dialog.Owner = Application.Current.MainWindow;
+            if (dialog.ShowDialog() == true)
+            {
+                return dialog.SelectedPaper;
+            }
+
+            return null;
         }
 
         // 論文データの読み込み
@@ -57,55 +164,61 @@ namespace PaperManagementApp.Views
                 }
 
                 // フォームに値を設定
-                TitleTextBox.Text = _currentPaper.Title;
-                AuthorsTextBox.Text = _currentPaper.Authors;
-                YearTextBox.Text = _currentPaper.Year.ToString();
-                JournalTextBox.Text = _currentPaper.Journal;
-                VolumeTextBox.Text = _currentPaper.Volume;
-                PagesTextBox.Text = _currentPaper.Pages;
-                DoiTextBox.Text = _currentPaper.DOI;
-                FavoriteCheckBox.IsChecked = _currentPaper.IsFavorite;
-
-                // PDFファイルパス
-                if (!string.IsNullOrEmpty(_currentPaper.FilePath))
-                {
-                    PdfPathTextBox.Text = _currentPaper.FilePath;
-                    _pdfFilePath = _currentPaper.FilePath;
-                }
-
-                // 論文タイプの選択
-                for (int i = 0; i < PaperTypeComboBox.Items.Count; i++)
-                {
-                    var item = PaperTypeComboBox.Items[i] as ComboBoxItem;
-                    if (item != null && item.Content.ToString() == _currentPaper.PaperType)
-                    {
-                        PaperTypeComboBox.SelectedIndex = i;
-                        break;
-                    }
-                }
-
-                if (PaperTypeComboBox.SelectedIndex < 0)
-                {
-                    PaperTypeComboBox.SelectedIndex = 0; // デフォルト選択
-                }
-
-                ClinicalAreaTextBox.Text = _currentPaper.ClinicalArea;
-                ApproachTextBox.Text = _currentPaper.Approach;
-                KeywordsTextBox.Text = _currentPaper.Keywords;
-                TagsTextBox.Text = _currentPaper.Tags;
-
-                // 論文セクションの内容
-                AbstractTextBox.Text = _currentPaper.Abstract;
-                ProblemAndPurposeTextBox.Text = _currentPaper.ProblemAndPurpose;
-                MethodTextBox.Text = _currentPaper.Method;
-                ResultsTextBox.Text = _currentPaper.Results;
-                DiscussionTextBox.Text = _currentPaper.Discussion;
-                AdditionalNotesTextBox.Text = _currentPaper.AdditionalNotes;
+                PopulateFormFromPaper(_currentPaper);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"論文の読み込み中にエラーが発生しました: {ex.Message}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        // Paperオブジェクトからフォームに値を設定
+        private void PopulateFormFromPaper(Paper paper)
+        {
+            TitleTextBox.Text = paper.Title;
+            AuthorsTextBox.Text = paper.Authors;
+            YearTextBox.Text = paper.Year.ToString();
+            JournalTextBox.Text = paper.Journal;
+            VolumeTextBox.Text = paper.Volume;
+            PagesTextBox.Text = paper.Pages;
+            DoiTextBox.Text = paper.DOI;
+            FavoriteCheckBox.IsChecked = paper.IsFavorite;
+
+            // PDFファイルパス
+            if (!string.IsNullOrEmpty(paper.FilePath))
+            {
+                PdfPathTextBox.Text = paper.FilePath;
+                _pdfFilePath = paper.FilePath;
+            }
+
+            // 論文タイプの選択
+            for (int i = 0; i < PaperTypeComboBox.Items.Count; i++)
+            {
+                var item = PaperTypeComboBox.Items[i] as ComboBoxItem;
+                if (item != null && item.Content.ToString() == paper.PaperType)
+                {
+                    PaperTypeComboBox.SelectedIndex = i;
+                    break;
+                }
+            }
+
+            if (PaperTypeComboBox.SelectedIndex < 0)
+            {
+                PaperTypeComboBox.SelectedIndex = 0; // デフォルト選択
+            }
+
+            ClinicalAreaTextBox.Text = paper.ClinicalArea;
+            ApproachTextBox.Text = paper.Approach;
+            KeywordsTextBox.Text = paper.Keywords;
+            TagsTextBox.Text = paper.Tags;
+
+            // 論文セクションの内容
+            AbstractTextBox.Text = paper.Abstract;
+            ProblemAndPurposeTextBox.Text = paper.ProblemAndPurpose;
+            MethodTextBox.Text = paper.Method;
+            ResultsTextBox.Text = paper.Results;
+            DiscussionTextBox.Text = paper.Discussion;
+            AdditionalNotesTextBox.Text = paper.AdditionalNotes;
         }
 
         // PDFファイル参照ボタンクリック
@@ -278,6 +391,7 @@ namespace PaperManagementApp.Views
                 // SQLite固有のエラー情報を表示
                 MessageBox.Show($"データベースエラー: {sqlEx.Message}\nエラーコード: {sqlEx.SqliteErrorCode}",
                     "SQLiteエラー", MessageBoxButton.OK, MessageBoxImage.Error);
+
                 // デバッグ用にコンソールにも出力
                 Console.WriteLine($"SQLiteエラー: {sqlEx.Message}, コード: {sqlEx.SqliteErrorCode}");
             }
@@ -286,8 +400,10 @@ namespace PaperManagementApp.Views
                 // 内部例外の詳細を表示
                 string innerMessage = ex.InnerException != null ?
                     $"内部例外: {ex.InnerException.Message}" : "詳細なエラー情報はありません";
+
                 MessageBox.Show($"保存中にエラーが発生しました:\n{ex.Message}\n\n{innerMessage}",
                     "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+
                 // デバッグ用にコンソールにも出力
                 Console.WriteLine($"一般エラー: {ex.Message}");
                 Console.WriteLine($"内部例外: {ex.InnerException?.Message}");
