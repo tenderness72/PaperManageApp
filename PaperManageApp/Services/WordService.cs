@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Word = Microsoft.Office.Interop.Word;
+using System.Windows;
 
 namespace PaperManagementApp.Services
 {
@@ -47,13 +48,16 @@ namespace PaperManagementApp.Services
         {
             try
             {
+                var assembly = typeof(Microsoft.Office.Interop.Word.Application).Assembly;
+                MessageBox.Show($"Word Interop Assembly: {assembly.FullName}");
                 _wordApp = new Word.Application();
                 _wordApp.Visible = true;
+
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Wordの起動に失敗しました: {ex.Message}");
+                MessageBox.Show($"Wordの起動に失敗しました: {ex.Message}\n\n{ex.StackTrace}");
                 return false;
             }
         }

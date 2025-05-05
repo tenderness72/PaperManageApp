@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace PaperManagementApp.Models
 {
@@ -70,7 +71,7 @@ namespace PaperManagementApp.Models
         [NotMapped]
         public string[] AuthorArray
         {
-            get { return Authors?.Split(',') ?? new string[0]; }
+            get { return Authors?.Split('.') ?? new string[0]; }
         }
 
         // タグを配列として取得
@@ -105,28 +106,112 @@ namespace PaperManagementApp.Models
         // APA形式の引用を生成（本文中の引用用）
         public string GetInTextCitation()
         {
-            string firstAuthor = AuthorArray.Length > 0 ? AuthorArray[0].Trim() : "著者不明";
+            // 著者が区切られているか確認
+            string[] authorList = Authors?.Split('.') ?? new string[0];
 
-            if (AuthorArray.Length == 1)
+            if (authorList.Length == 0)
             {
-                return $"{firstAuthor}({Year})";
+                return "著者不明";
             }
-            else if (AuthorArray.Length == 2)
+
+            // 各著者から姓のみを抽出
+            List<string> lastNames = new List<string>();
+            foreach (string authorName in authorList)
             {
-                string secondAuthor = AuthorArray[1].Trim();
-                return $"{firstAuthor}・{secondAuthor}({Year})";
+                lastNames.Add(ExtractLastName(authorName.Trim()));
+            }
+
+            // 引用の生成
+            if (lastNames.Count == 1)
+            {
+                return $"{lastNames[0]}({Year})";
+            }
+            else if (lastNames.Count == 2)
+            {
+                return $"{lastNames[0]}・{lastNames[1]}({Year})";
             }
             else
             {
-                return $"{firstAuthor}ら({Year})";
+                return $"{lastNames[0]}ら({Year})";
             }
+        }
+
+        // 著者名から姓を抽出するヘルパーメソッド
+        private string ExtractLastName(string authorName)
+        {
+            // カンマが含まれている場合（例：「山本,淳一」）
+            if (authorName.Contains(","))
+            {
+                return authorName.Split(',')[0].Trim();
+            }
+
+            // カンマがない場合は日本語名かどうかを確認
+            if (IsJapaneseName(authorName))
+            {
+                // 日本語名の場合、より洗練された姓の抽出が必要かもしれませんが、
+                // ここでは簡単のため、最初の2文字を姓と見なします
+                if (authorName.Length >= 2)
+                {
+                    return authorName.Substring(0, 2);
+                }
+            }
+
+            // スペースで区切られている場合（例：「山本 淳一」）
+            if (authorName.Contains(" "))
+            {
+                return authorName.Split(' ')[0].Trim();
+            }
+
+            // その他の場合はそのまま返す
+            return authorName;
+        }
+
+        // 日本語名かどうかを判定するヘルパーメソッド
+        private bool IsJapaneseName(string name)
+        {
+            return name.Any(c => (c >= '\u3040' && c <= '\u309F') ||  // ひらがな
+                                (c >= '\u30A0' && c <= '\u30FF') ||  // カタカナ
+                                (c >= '\u4E00' && c <= '\u9FFF'));   // 漢字
         }
 
         // 参考文献リスト用の完全な引用情報を生成
         public string GetFullCitation()
         {
-            string authorText = string.Join("・", AuthorArray);
+            // 著者が区切られているか確認
+            string[] authorList = Authors?.Split('.') ?? new string[0];
+
+            if (authorList.Length == 0)
+            {
+                return $"著者不明 ({Year}). {Title} {Journal}, {Volume}, {Pages}";
+            }
+
+            // 著者名を整形（フルネームを使用）
+            List<string> formattedAuthors = new List<string>();
+            foreach (string authorName in authorList)
+            {
+                formattedAuthors.Add(FormatAuthorName(authorName.Trim()));
+            }
+
+            string authorText = string.Join("・", formattedAuthors);
             return $"{authorText} ({Year}). {Title} {Journal}, {Volume}, {Pages}";
+        }
+
+        // 参考文献用に著者名をフォーマットするヘルパーメソッド
+        private string FormatAuthorName(string authorName)
+        {
+            // カンマが含まれている場合（例：「山本,淳一」）
+            if (authorName.Contains(","))
+            {
+                string[] parts = authorName.Split(',');
+                if (parts.Length >= 2)
+                {
+                    // 日本語形式で「姓 名」として返す
+                    return $"{parts[0].Trim()} {parts[1].Trim()}";
+                }
+            }
+
+            // その他の場合はそのまま返す
+            return authorName;
         }
     }
 }
