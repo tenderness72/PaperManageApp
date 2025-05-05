@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="PaperManagementApp.Views.PaperDetailView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:PaperManagementApp.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="650" d:DesignWidth="900"
+      Title="論文詳細">
+
+    <Grid>
+        <ScrollViewer>
+            <StackPanel Margin="20">
+                <!-- ヘッダー部分 -->
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <TextBlock x:Name="TitleTextBlock" 
+                                 Text="論文タイトル" 
+                                 FontSize="24" 
+                                 FontWeight="Bold" 
+                                 TextWrapping="Wrap"/>
+
+                        <TextBlock x:Name="AuthorsTextBlock" 
+                                 Text="著者名" 
+                                 FontSize="16" 
+                                 Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Content="編集" 
+                                Click="EditButton_Click"
+                                Margin="0,0,10,0"
+                                Padding="15,5" 
+                                Background="#3498db" 
+                                Foreground="White" 
+                                BorderThickness="0"/>
+
+                        <Button Content="Word引用" 
+                                Click="WordCitationButton_Click"
+                                Padding="15,5" 
+                                Background="#27ae60" 
+                                Foreground="White" 
+                                BorderThickness="0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- メタデータ部分 -->
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" BorderBrush="#e0e0e0" BorderThickness="1" Margin="0,0,10,0" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="出版情報" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBlock>
+                                <Run Text="雑誌名: "/>
+                                <Run x:Name="JournalRun"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="出版年: "/>
+                                <Run x:Name="YearRun"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="巻・号: "/>
+                                <Run x:Name="VolumeRun"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="ページ: "/>
+                                <Run x:Name="PagesRun"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="DOI: "/>
+                                <Run x:Name="DoiRun"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" BorderBrush="#e0e0e0" BorderThickness="1" Margin="5,0" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="論文情報" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBlock>
+                                <Run Text="論文タイプ: "/>
+                                <Run x:Name="PaperTypeRun"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="臨床領域: "/>
+                                <Run x:Name="ClinicalAreaRun"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="アプローチ: "/>
+                                <Run x:Name="ApproachRun"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="キーワード: "/>
+                                <Run x:Name="KeywordsRun"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" BorderBrush="#e0e0e0" BorderThickness="1" Margin="10,0,0,0" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="引用情報" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBlock Text="本文中引用:" Margin="0,5,0,0"/>
+                            <TextBox x:Name="InTextCitationTextBox" 
+                                     IsReadOnly="True"
+                                     Margin="0,5"
+                                     Padding="5"
+                                     Background="#f5f5f5"/>
+
+                            <TextBlock Text="参考文献リスト用:" Margin="0,5,0,0"/>
+                            <TextBox x:Name="FullCitationTextBox"
+                                     IsReadOnly="True"
+                                     Margin="0,5"
+                                     Padding="5"
+                                     TextWrapping="Wrap"
+                                     Height="60"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Background="#f5f5f5"/>
+
+                            <Button Content="引用をコピー" 
+                                    Click="CopyCitationButton_Click"
+                                    Margin="0,5,0,0"
+                                    Padding="5,3"
+                                    HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- タブコントロール（論文の各セクション） -->
+                <TabControl x:Name="SectionsTabControl" Height="400">
+                    <TabItem Header="概要">
+                        <TextBox x:Name="AbstractTextBox" 
+                                 TextWrapping="Wrap" 
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Padding="10"
+                                 TextChanged="SectionTextBox_TextChanged"/>
+                    </TabItem>
+
+                    <TabItem Header="問題と目的">
+                        <TextBox x:Name="ProblemAndPurposeTextBox" 
+                                 TextWrapping="Wrap" 
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Padding="10"
+                                 TextChanged="SectionTextBox_TextChanged"/>
+                    </TabItem>
+
+                    <TabItem Header="方法">
+                        <TextBox x:Name="MethodTextBox" 
+                                 TextWrapping="Wrap" 
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Padding="10"
+                                 TextChanged="SectionTextBox_TextChanged"/>
+                    </TabItem>
+
+                    <TabItem Header="結果">
+                        <TextBox x:Name="ResultsTextBox" 
+                                 TextWrapping="Wrap" 
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Padding="10"
+                                 TextChanged="SectionTextBox_TextChanged"/>
+                    </TabItem>
+
+                    <TabItem Header="考察">
+                        <TextBox x:Name="DiscussionTextBox" 
+                                 TextWrapping="Wrap" 
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Padding="10"
+                                 TextChanged="SectionTextBox_TextChanged"/>
+                    </TabItem>
+
+                    <TabItem Header="その他メモ">
+                        <TextBox x:Name="AdditionalNotesTextBox" 
+                                 TextWrapping="Wrap" 
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Padding="10"
+                                 TextChanged="SectionTextBox_TextChanged"/>
+                    </TabItem>
+                </TabControl>
+
+                <!-- 保存ボタン -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <Button Content="戻る" 
+                            Click="BackButton_Click"
+                            Margin="0,0,10,0"
+                            Padding="15,5"/>
+
+                    <Button x:Name="SaveButton"
+                            Content="変更を保存" 
+                            Click="SaveButton_Click"
+                            Padding="15,5" 
+                            Background="#2ecc71" 
+                            Foreground="White" 
+                            BorderThickness="0"
+                            IsEnabled="False"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

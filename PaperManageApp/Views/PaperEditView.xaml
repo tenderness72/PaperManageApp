@@ -1,0 +1,244 @@
+<Page x:Class="PaperManagementApp.Views.PaperEditView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:PaperManagementApp.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="650" d:DesignWidth="900"
+      Title="論文編集">
+
+    <Grid>
+        <ScrollViewer>
+            <StackPanel Margin="20">
+                <!-- ヘッダー部分 -->
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="HeaderTextBlock" 
+                               Text="新規論文の追加" 
+                               FontSize="24" 
+                               FontWeight="Bold" 
+                               VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- 基本情報フォーム -->
+                <GroupBox Header="基本情報" Margin="0,0,0,20" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- タイトル -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                            <TextBlock Text="タイトル *" FontWeight="Bold"/>
+                            <TextBox x:Name="TitleTextBox" Margin="0,5" Padding="5"/>
+                        </StackPanel>
+
+                        <!-- 著者 -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="著者 *" FontWeight="Bold"/>
+                            <TextBox x:Name="AuthorsTextBox" Margin="0,5" Padding="5"/>
+                            <TextBlock Text="カンマ(,)区切りで複数入力できます" FontSize="11" Foreground="Gray"/>
+                        </StackPanel>
+
+                        <!-- 出版年 -->
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="出版年 *" FontWeight="Bold"/>
+                            <TextBox x:Name="YearTextBox" Margin="0,5" Padding="5"/>
+                        </StackPanel>
+
+                        <!-- 雑誌名 -->
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="雑誌名 *" FontWeight="Bold"/>
+                            <TextBox x:Name="JournalTextBox" Margin="0,5" Padding="5"/>
+                        </StackPanel>
+
+                        <!-- 巻・号 -->
+                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="巻・号" FontWeight="Bold"/>
+                            <TextBox x:Name="VolumeTextBox" Margin="0,5" Padding="5"/>
+                        </StackPanel>
+
+                        <!-- ページ -->
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="ページ" FontWeight="Bold"/>
+                            <TextBox x:Name="PagesTextBox" Margin="0,5" Padding="5"/>
+                        </StackPanel>
+
+                        <!-- DOI -->
+                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="DOI" FontWeight="Bold"/>
+                            <TextBox x:Name="DoiTextBox" Margin="0,5" Padding="5"/>
+                        </StackPanel>
+
+                        <!-- PDF添付 -->
+                        <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                            <TextBlock Text="PDF添付" FontWeight="Bold"/>
+                            <Grid Margin="0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="PdfPathTextBox" 
+                                         IsReadOnly="True" 
+                                         Padding="5"/>
+
+                                <Button Grid.Column="1" 
+                                        Content="参照..." 
+                                        Click="BrowsePdfButton_Click"
+                                        Margin="5,0,0,0" 
+                                        Padding="10,0"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- お気に入り -->
+                        <CheckBox x:Name="FavoriteCheckBox" 
+                                  Grid.Row="5" 
+                                  Grid.Column="0" 
+                                  Content="お気に入りに追加" 
+                                  Margin="0,5"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- 分類情報フォーム -->
+                <GroupBox Header="分類情報" Margin="0,0,0,20" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- 論文タイプ -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="論文タイプ" FontWeight="Bold"/>
+                            <ComboBox x:Name="PaperTypeComboBox" Margin="0,5" Padding="5">
+                                <ComboBoxItem Content="研究論文"/>
+                                <ComboBoxItem Content="症例報告"/>
+                                <ComboBoxItem Content="レビュー"/>
+                                <ComboBoxItem Content="解説"/>
+                                <ComboBoxItem Content="その他"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- 臨床領域 -->
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="臨床領域" FontWeight="Bold"/>
+                            <TextBox x:Name="ClinicalAreaTextBox" Margin="0,5" Padding="5"/>
+                            <TextBlock Text="カンマ(,)区切りで複数入力できます" FontSize="11" Foreground="Gray"/>
+                        </StackPanel>
+
+                        <!-- アプローチ -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="アプローチ" FontWeight="Bold"/>
+                            <TextBox x:Name="ApproachTextBox" Margin="0,5" Padding="5"/>
+                            <TextBlock Text="カンマ(,)区切りで複数入力できます" FontSize="11" Foreground="Gray"/>
+                        </StackPanel>
+
+                        <!-- キーワード -->
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="キーワード" FontWeight="Bold"/>
+                            <TextBox x:Name="KeywordsTextBox" Margin="0,5" Padding="5"/>
+                            <TextBlock Text="カンマ(,)区切りで複数入力できます" FontSize="11" Foreground="Gray"/>
+                        </StackPanel>
+
+                        <!-- タグ -->
+                        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                            <TextBlock Text="タグ" FontWeight="Bold"/>
+                            <TextBox x:Name="TagsTextBox" Margin="0,5" Padding="5"/>
+                            <TextBlock Text="カンマ(,)区切りで複数入力できます" FontSize="11" Foreground="Gray"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <!-- 論文セクションフォーム -->
+                <GroupBox Header="論文セクション（メモ）" Margin="0,0,0,20" Padding="10">
+                    <TabControl x:Name="SectionsTabControl" Height="300">
+                        <TabItem Header="概要">
+                            <TextBox x:Name="AbstractTextBox" 
+                                     TextWrapping="Wrap" 
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Padding="10"/>
+                        </TabItem>
+
+                        <TabItem Header="問題と目的">
+                            <TextBox x:Name="ProblemAndPurposeTextBox" 
+                                     TextWrapping="Wrap" 
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Padding="10"/>
+                        </TabItem>
+
+                        <TabItem Header="方法">
+                            <TextBox x:Name="MethodTextBox" 
+                                     TextWrapping="Wrap" 
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Padding="10"/>
+                        </TabItem>
+
+                        <TabItem Header="結果">
+                            <TextBox x:Name="ResultsTextBox" 
+                                     TextWrapping="Wrap" 
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Padding="10"/>
+                        </TabItem>
+
+                        <TabItem Header="考察">
+                            <TextBox x:Name="DiscussionTextBox" 
+                                     TextWrapping="Wrap" 
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Padding="10"/>
+                        </TabItem>
+
+                        <TabItem Header="その他メモ">
+                            <TextBox x:Name="AdditionalNotesTextBox" 
+                                     TextWrapping="Wrap" 
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Padding="10"/>
+                        </TabItem>
+                    </TabControl>
+                </GroupBox>
+
+                <!-- ボタン部分 -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="キャンセル" 
+                            Click="CancelButton_Click"
+                            Margin="0,0,10,0"
+                            Padding="15,5"/>
+
+                    <Button Content="保存" 
+                            Click="SaveButton_Click"
+                            Padding="15,5" 
+                            Background="#2ecc71" 
+                            Foreground="White" 
+                            BorderThickness="0"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
