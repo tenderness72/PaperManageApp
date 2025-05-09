@@ -193,7 +193,17 @@ namespace PaperManagementApp.Models
             }
 
             string authorText = string.Join("・", formattedAuthors);
-            return $"{authorText} ({Year}). {Title} {Journal}, {Volume}, {Pages}";
+
+            // 文献情報を作成
+            string citation = $"{authorText} ({Year}). {Title} {Journal}, {Volume}, {Pages}";
+
+            // "and" が含まれている場合、それを削除
+            if (citation.Contains(" and "))
+            {
+                citation = citation.Replace(" and ", " ");
+            }
+
+            return citation;
         }
 
         // 参考文献用に著者名をフォーマットするヘルパーメソッド

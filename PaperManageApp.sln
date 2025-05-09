@@ -5,7 +5,7 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaperManageApp", "PaperManageApp\PaperManageApp.csproj", "{685BE62C-D92A-4571-8DB5-729D4C620339}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Installer", "Installer\Installer.vdproj", "{52B20422-474D-5734-629F-99A1F7DE9787}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "installer", "installer\installer.vdproj", "{52B20422-474D-5734-629F-99A1F7DE9787}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

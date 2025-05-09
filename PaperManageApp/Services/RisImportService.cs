@@ -101,7 +101,8 @@ namespace PaperManagementApp.Services
             if (risData.ContainsKey("AU"))
             {
                 string[] authors = risData["AU"].Split(new[] { " and " }, StringSplitOptions.RemoveEmptyEntries);
-                paper.Authors = string.Join(", ", authors.Select(a => a.Trim()));
+                // カンマではなくピリオドで区切る
+                paper.Authors = string.Join(".", authors.Select(a => a.Trim()));
             }
 
             // 出版年
