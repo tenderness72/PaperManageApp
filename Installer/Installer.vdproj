@@ -15,7 +15,25 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_3A4507040F664B448245B5C3A49C0B84"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_CA0348654E7E44E8BD1777C8E2FC0803"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_D36C9D1E0ED2401E8B0E9834D2107AE7"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_FD32A0EC7F98441A9715EC827467B6E8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -37,6 +55,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -100,6 +126,66 @@
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3A4507040F664B448245B5C3A49C0B84"
+            {
+            "SourcePath" = "8:..\\..\\..\\..\\Downloads\\Acedia.ico"
+            "TargetName" = "8:Acedia.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CA0348654E7E44E8BD1777C8E2FC0803"
+            {
+            "SourcePath" = "8:..\\..\\..\\..\\Downloads\\favicon_stc.ico"
+            "TargetName" = "8:favicon_stc.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FD32A0EC7F98441A9715EC827467B6E8"
+            {
+            "SourcePath" = "8:..\\..\\..\\..\\Downloads\\favicon (2).ico"
+            "TargetName" = "8:favicon (2).ico"
+            "Tag" = "8:"
+            "Folder" = "8:_D3222820B44B49BB92828E29A1E45FBD"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
         }
         "FileType"
         {
@@ -167,15 +253,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:installer"
-        "ProductCode" = "8:{9612E944-7105-4A81-80F2-9234A16310AB}"
-        "PackageCode" = "8:{9941708E-995D-465E-8338-BB4A738DA1BF}"
+        "ProductCode" = "8:{66EFB0B0-70FA-4208-8B92-7C359D35D7C8}"
+        "PackageCode" = "8:{E97D709F-63BF-4890-9BED-87C16A8C5780}"
         "UpgradeCode" = "8:{EE72FA30-7A10-42D7-8618-D2C00580CCC9}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.2"
+        "ProductVersion" = "8:1.0.4.1"
         "Manufacturer" = "8:MukoProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -299,7 +385,7 @@
             "Target" = "8:_D36C9D1E0ED2401E8B0E9834D2107AE7"
             "Folder" = "8:_D3222820B44B49BB92828E29A1E45FBD"
             "WorkingFolder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
-            "Icon" = "8:"
+            "Icon" = "8:_FD32A0EC7F98441A9715EC827467B6E8"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_9D7198B9BB664C638FA8809B2A3535E6"
@@ -313,7 +399,7 @@
             "Target" = "8:_D36C9D1E0ED2401E8B0E9834D2107AE7"
             "Folder" = "8:_8C52AEAAA3D84765A030054D4C6BCAF5"
             "WorkingFolder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
-            "Icon" = "8:"
+            "Icon" = "8:_CA0348654E7E44E8BD1777C8E2FC0803"
             "Feature" = "8:"
             }
         }
