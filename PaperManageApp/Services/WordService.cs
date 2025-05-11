@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Word = Microsoft.Office.Interop.Word;
 using System.Windows;
+using System.Reflection;
+using System.IO;
 
 namespace PaperManagementApp.Services
 {
@@ -30,30 +32,74 @@ namespace PaperManagementApp.Services
                         _wordApp.Visible = true;
                         return true;
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        MessageBox.Show($"既存のWord接続に失敗しました: {ex.Message}");
                         return false;
                     }
                 }
                 return false;
             }
-            catch
+            catch (Exception ex)
             {
+                MessageBox.Show($"Wordプロセスの検出に失敗しました: {ex.Message}");
                 return false;
             }
         }
 
-        // Wordを起動
+        // Wordを起動（強化版）
         public bool StartWord()
         {
             try
             {
-                var assembly = typeof(Microsoft.Office.Interop.Word.Application).Assembly;
-                MessageBox.Show($"Word Interop Assembly: {assembly.FullName}");
-                _wordApp = new Word.Application();
-                _wordApp.Visible = true;
+                // Office相互運用アセンブリの情報をログに出力
+                try
+                {
+                    var wordAppType = typeof(Microsoft.Office.Interop.Word.Application);
+                    var assembly = wordAppType.Assembly;
+                    MessageBox.Show($"Word Interop Assembly: {assembly.FullName}");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Word Interopアセンブリの情報取得に失敗: {ex.Message}");
+                }
 
-                return true;
+                // 明示的な Late Binding の利用（PIA依存を減らす）
+                try
+                {
+                    Type officeType = Type.GetTypeFromProgID("Word.Application");
+                    if (officeType != null)
+                    {
+                        object wordObj = Activator.CreateInstance(officeType);
+                        _wordApp = (Word.Application)wordObj;
+                        _wordApp.Visible = true;
+                        return true;
+                    }
+                    else
+                    {
+                        // 通常の方法でWordを起動
+                        _wordApp = new Word.Application();
+                        _wordApp.Visible = true;
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Late Bindingでの起動に失敗しました: {ex.Message}");
+
+                    // 最後の手段：通常の方法でWordを起動
+                    try
+                    {
+                        _wordApp = new Word.Application();
+                        _wordApp.Visible = true;
+                        return true;
+                    }
+                    catch (Exception ex2)
+                    {
+                        MessageBox.Show($"Wordの起動に失敗しました: {ex2.Message}\n\n{ex2.StackTrace}");
+                        return false;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -85,7 +131,7 @@ namespace PaperManagementApp.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Word文書の取得に失敗しました: {ex.Message}");
+                MessageBox.Show($"Word文書の取得に失敗しました: {ex.Message}");
                 return false;
             }
         }
@@ -111,7 +157,7 @@ namespace PaperManagementApp.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"引用の挿入に失敗しました: {ex.Message}");
+                MessageBox.Show($"引用の挿入に失敗しました: {ex.Message}");
                 return false;
             }
         }
@@ -131,14 +177,31 @@ namespace PaperManagementApp.Services
 
                 // カーソル位置に完全な引用情報を挿入
                 Word.Selection selection = _wordApp.Selection;
-                selection.TypeText(paper.GetFullCitation());
-                selection.TypeParagraph(); // 改行を挿入
+
+                // 引用情報を取得
+                string citation = paper.GetFullCitation();
+
+                // 初回の行を挿入
+                selection.TypeText(citation);
+                selection.TypeParagraph(); // 改行
+
+                // 論文情報が長い場合、2行目以降のインデントのためのフラグを設定
+                if (citation.Length > 80)  // 80文字を超える場合は2行になると仮定
+                {
+                    // 段落設定を取得
+                    Word.Paragraph para = selection.Paragraphs.Last;
+
+                    // 1行目のハンギングインデントを設定（Windows APIのポイント単位）
+                    // 全角スペース2つ分（約40ポイント）
+                    para.FirstLineIndent = -40f;  // ハンギングインデント
+                    para.LeftIndent = 40f;       // 左インデント
+                }
 
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"引用の挿入に失敗しました: {ex.Message}");
+                MessageBox.Show($"引用の挿入に失敗しました: {ex.Message}");
                 return false;
             }
         }
@@ -170,15 +233,31 @@ namespace PaperManagementApp.Services
                 // すべての論文の引用情報を挿入
                 foreach (var paper in papers)
                 {
-                    selection.TypeText(paper.GetFullCitation());
+                    // 引用情報を取得
+                    string citation = paper.GetFullCitation();
+
+                    // 初回の行を挿入
+                    selection.TypeText(citation);
                     selection.TypeParagraph();
+
+                    // 論文情報が長い場合、2行目以降のインデントのためのフラグを設定
+                    if (citation.Length > 80)  // 80文字を超える場合は2行になると仮定
+                    {
+                        // 段落設定を取得
+                        Word.Paragraph para = selection.Paragraphs.Last;
+
+                        // ハンギングインデントを設定（Windows APIのポイント単位）
+                        // 全角スペース2つ分（約40ポイント）
+                        para.FirstLineIndent = -40f;  // ハンギングインデント
+                        para.LeftIndent = 40f;       // 左インデント
+                    }
                 }
 
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"参考文献リストの挿入に失敗しました: {ex.Message}");
+                MessageBox.Show($"参考文献リストの挿入に失敗しました: {ex.Message}");
                 return false;
             }
         }
@@ -206,7 +285,7 @@ namespace PaperManagementApp.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"クリーンアップに失敗しました: {ex.Message}");
+                MessageBox.Show($"クリーンアップに失敗しました: {ex.Message}");
             }
         }
     }

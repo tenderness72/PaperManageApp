@@ -58,7 +58,7 @@ namespace PaperManagementApp.Services
                     if (currentEntry.ContainsKey(tag))
                     {
                         // 同じタグが既に存在する場合は値を追加（複数著者など）
-                        currentEntry[tag] += " and " + value;
+                        currentEntry[tag] +=  value;
                     }
                     else
                     {
