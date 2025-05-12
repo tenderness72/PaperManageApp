@@ -6,3 +6,7 @@
 - 論文の概要と問題、目的などの項目ごとのメモを残す。
 - Wordと連携し、J-APAの形式にそった引用スタイルで挿入する。Ex: 丸山(2005)
 - 登録した論文を検索。
+
+# Lisence
+
+This project is licensed under the MIT License, see the LICENSE.txt file for details
