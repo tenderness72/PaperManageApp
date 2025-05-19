@@ -49,9 +49,18 @@ namespace PaperManagementApp.Services
                     lastTag = tag;
                     if (currentEntry.ContainsKey(tag))
                     {
-                        // 同じタグが既に存在する場合は値を追加（複数著者など）
-                        // andで連結
-                        currentEntry[tag] += " and " + value;
+                        // 同じタグが既に存在する場合は値を追加
+                        // タグによって連結方法を変える
+                        if (tag == "AU")
+                        {
+                            // 著者の場合は "and" で連結
+                            currentEntry[tag] += " and " + value;
+                        }
+                        else
+                        {
+                            // その他のタグはスペースで連結
+                            currentEntry[tag] += " " + value;
+                        }
                     }
                     else
                     {
