@@ -100,23 +100,28 @@ namespace PaperManagementApp.Services
                 // 複数の区切り文字で分割
                 string[] authors = risData["AU"].Split(new[] { " and ", ";" }, StringSplitOptions.RemoveEmptyEntries);
 
-                // 各著者の名前を処理し、最後にピリオドをつける
+                // 各著者の名前を処理し、最後の著者以外にピリオドをつける
                 List<string> formattedAuthors = new List<string>();
-                foreach (var author in authors)
+                for (int i = 0; i < authors.Length; i++)
                 {
-                    string trimmedAuthor = author.Trim();
-                    // ピリオドをつける処理
-                    if (!trimmedAuthor.EndsWith("."))
+                    string trimmedAuthor = authors[i].Trim();
+
+                    // 既存のピリオドを削除
+                    trimmedAuthor = trimmedAuthor.TrimEnd('.');
+
+                    // 最後の著者以外にはピリオドをつける
+                    if (i < authors.Length - 1)
                     {
                         formattedAuthors.Add(trimmedAuthor + ".");
                     }
                     else
                     {
+                        // 最後の著者にはピリオドをつけない
                         formattedAuthors.Add(trimmedAuthor);
                     }
                 }
 
-                // スペースで区切って連結（カンマはつけない）
+                // スペースで連結
                 paper.Authors = string.Join(" ", formattedAuthors);
             }
             // 出版年
