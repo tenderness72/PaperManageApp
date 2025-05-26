@@ -15,13 +15,13 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_D36C9D1E0ED2401E8B0E9834D2107AE7"
+        "MsmKey" = "8:_AE6446B832F94D99833735E4A9290A7D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_F8FB27CBCCA64D4F969ED012C3A53672"
+        "MsmKey" = "8:_F142146B908D4B17B1FBFBF4C4947344"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -50,6 +50,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
         "Release"
@@ -114,10 +122,10 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F8FB27CBCCA64D4F969ED012C3A53672"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F142146B908D4B17B1FBFBF4C4947344"
             {
-            "SourcePath" = "8:..\\..\\..\\..\\Downloads\\favicon (4).ico"
-            "TargetName" = "8:favicon (4).ico"
+            "SourcePath" = "8:..\\favicon.ico"
+            "TargetName" = "8:favicon.ico"
             "Tag" = "8:"
             "Folder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
             "Condition" = "8:"
@@ -201,15 +209,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Acedia"
-        "ProductCode" = "8:{BF93B1A6-2340-46A1-A96A-8D458E47462B}"
-        "PackageCode" = "8:{96A46D31-75B6-4244-A411-4982074652ED}"
+        "ProductCode" = "8:{D3BA67B9-5ADB-41D5-9503-3F16320B9455}"
+        "PackageCode" = "8:{D9C8B986-102B-49FA-95F5-1C58194142D1}"
         "UpgradeCode" = "8:{EE72FA30-7A10-42D7-8618-D2C00580CCC9}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.5"
+        "ProductVersion" = "8:1.0.7"
         "Manufacturer" = "8:MukoProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -322,7 +330,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_1EF1E890257C4A92992FEF5E6A39220B"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_5462D0AB5D974779AF9708DEE73E74E1"
             {
             "Name" = "8:Acedia"
             "Arguments" = "8:"
@@ -330,13 +338,13 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_D36C9D1E0ED2401E8B0E9834D2107AE7"
+            "Target" = "8:_AE6446B832F94D99833735E4A9290A7D"
             "Folder" = "8:_D3222820B44B49BB92828E29A1E45FBD"
             "WorkingFolder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
-            "Icon" = "8:_F8FB27CBCCA64D4F969ED012C3A53672"
+            "Icon" = "8:_F142146B908D4B17B1FBFBF4C4947344"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_9D7198B9BB664C638FA8809B2A3535E6"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_833C412E6B9E4C10862A3F701FC2C14D"
             {
             "Name" = "8:Acedia"
             "Arguments" = "8:"
@@ -344,10 +352,10 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_D36C9D1E0ED2401E8B0E9834D2107AE7"
+            "Target" = "8:_AE6446B832F94D99833735E4A9290A7D"
             "Folder" = "8:_8C52AEAAA3D84765A030054D4C6BCAF5"
             "WorkingFolder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
-            "Icon" = "8:_F8FB27CBCCA64D4F969ED012C3A53672"
+            "Icon" = "8:_F142146B908D4B17B1FBFBF4C4947344"
             "Feature" = "8:"
             }
         }
@@ -749,7 +757,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_D36C9D1E0ED2401E8B0E9834D2107AE7"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_AE6446B832F94D99833735E4A9290A7D"
             {
             "SourcePath" = "8:..\\PaperManageApp\\obj\\Release\\net8.0-windows\\apphost.exe"
             "TargetName" = "8:"
