@@ -43,8 +43,17 @@
 
                         <Button Content="Word引用" 
                                 Click="WordCitationButton_Click"
+                                Margin="0,0,10,0"
                                 Padding="15,5" 
                                 Background="#27ae60" 
+                                Foreground="White" 
+                                BorderThickness="0"/>
+
+                        <Button x:Name="OpenPdfButton"
+                                Content="PDFを開く" 
+                                Click="OpenPdfButton_Click"
+                                Padding="15,5" 
+                                Background="#e74c3c" 
                                 Foreground="White" 
                                 BorderThickness="0"/>
                     </StackPanel>

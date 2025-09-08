@@ -1,6 +1,8 @@
 ﻿using PaperManagementApp.Models;
 using PaperManagementApp.Services;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -73,6 +75,21 @@ namespace PaperManagementApp.Views
                 ResultsTextBox.Text = _currentPaper.Results;
                 DiscussionTextBox.Text = _currentPaper.Discussion;
                 AdditionalNotesTextBox.Text = _currentPaper.AdditionalNotes;
+
+                // PDFボタンの表示制御
+                OpenPdfButton.IsEnabled = !string.IsNullOrEmpty(_currentPaper.FilePath) && File.Exists(_currentPaper.FilePath);
+                if (!OpenPdfButton.IsEnabled && !string.IsNullOrEmpty(_currentPaper.FilePath))
+                {
+                    OpenPdfButton.Content = "PDFファイルなし";
+                }
+                else if (OpenPdfButton.IsEnabled)
+                {
+                    OpenPdfButton.Content = "PDFを開く";
+                }
+                else
+                {
+                    OpenPdfButton.Content = "PDFファイルなし";
+                }
 
                 // データの変更フラグをリセット
                 _isDataDirty = false;
@@ -284,6 +301,53 @@ namespace PaperManagementApp.Views
             if (NavigationService != null)
             {
                 NavigationService.Navigating -= NavigationService_Navigating;
+            }
+        }
+
+        private void OpenPdfButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_currentPaper == null)
+                {
+                    MessageBox.Show("論文情報が読み込まれていません。", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(_currentPaper.FilePath))
+                {
+                    MessageBox.Show("この論文にはPDFファイルが関連付けられていません。", "情報", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                if (!File.Exists(_currentPaper.FilePath))
+                {
+                    var result = MessageBox.Show(
+                        $"PDFファイルが見つかりませんでした。\n\nパス: {_currentPaper.FilePath}\n\n論文データからファイルパスを削除しますか？",
+                        "ファイルが見つかりません",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning
+                    );
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        _currentPaper.FilePath = null;
+                        _paperService.UpdatePaper(_currentPaper);
+                        MessageBox.Show("ファイルパスを削除しました。", "削除完了", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    return;
+                }
+
+                // PDFファイルを既定のアプリケーションで開く
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = _currentPaper.FilePath,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"PDFファイルを開く際にエラーが発生しました: {ex.Message}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

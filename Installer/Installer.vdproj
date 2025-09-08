@@ -15,7 +15,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_AE6446B832F94D99833735E4A9290A7D"
+        "MsmKey" = "8:_551459E38D4F45CBAAB84A52CE348789"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -209,15 +209,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Acedia"
-        "ProductCode" = "8:{D3BA67B9-5ADB-41D5-9503-3F16320B9455}"
-        "PackageCode" = "8:{D9C8B986-102B-49FA-95F5-1C58194142D1}"
+        "ProductCode" = "8:{A9802713-B97B-4E8C-BA5E-C2D6D158AA7C}"
+        "PackageCode" = "8:{CBF70ECA-7484-4291-9745-CC6AB3333FC5}"
         "UpgradeCode" = "8:{EE72FA30-7A10-42D7-8618-D2C00580CCC9}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.7"
+        "ProductVersion" = "8:1.0.8"
         "Manufacturer" = "8:MukoProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -330,7 +330,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_5462D0AB5D974779AF9708DEE73E74E1"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_1BEFF303340E4B4EB680227CF4291C79"
             {
             "Name" = "8:Acedia"
             "Arguments" = "8:"
@@ -338,13 +338,13 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_AE6446B832F94D99833735E4A9290A7D"
+            "Target" = "8:_551459E38D4F45CBAAB84A52CE348789"
             "Folder" = "8:_D3222820B44B49BB92828E29A1E45FBD"
             "WorkingFolder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
-            "Icon" = "8:_F142146B908D4B17B1FBFBF4C4947344"
+            "Icon" = "8:"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_833C412E6B9E4C10862A3F701FC2C14D"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_28E52A337854462BBAD6D7996A7B1A04"
             {
             "Name" = "8:Acedia"
             "Arguments" = "8:"
@@ -352,10 +352,10 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_AE6446B832F94D99833735E4A9290A7D"
+            "Target" = "8:_551459E38D4F45CBAAB84A52CE348789"
             "Folder" = "8:_8C52AEAAA3D84765A030054D4C6BCAF5"
             "WorkingFolder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
-            "Icon" = "8:_F142146B908D4B17B1FBFBF4C4947344"
+            "Icon" = "8:"
             "Feature" = "8:"
             }
         }
@@ -757,7 +757,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_AE6446B832F94D99833735E4A9290A7D"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_551459E38D4F45CBAAB84A52CE348789"
             {
             "SourcePath" = "8:..\\PaperManageApp\\obj\\Release\\net8.0-windows\\apphost.exe"
             "TargetName" = "8:"
@@ -777,7 +777,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:Release|Any CPU"
+            "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:PublishItems"
             "OutputProjectGuid" = "8:{685BE62C-D92A-4571-8DB5-729D4C620339}"
             "ShowKeyOutput" = "11:TRUE"
