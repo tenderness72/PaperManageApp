@@ -21,7 +21,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_F142146B908D4B17B1FBFBF4C4947344"
+        "MsmKey" = "8:_7B7DEF6511C04DF9BC8E31C78F033B46"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -122,9 +122,9 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F142146B908D4B17B1FBFBF4C4947344"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7B7DEF6511C04DF9BC8E31C78F033B46"
             {
-            "SourcePath" = "8:..\\favicon.ico"
+            "SourcePath" = "8:..\\PaperManageApp\\Resource\\favicon.ico"
             "TargetName" = "8:favicon.ico"
             "Tag" = "8:"
             "Folder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
@@ -161,7 +161,7 @@
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_D5FC3FA2B98648B2AD5105E46D94B8BB"
             {
-            "DefaultLocation" = "8:[ProgramFilesFolder][Manufacturer]\\[ProductName]"
+            "DefaultLocation" = "8:[ProgramFiles64Folder][Manufacturer]\\[ProductName]"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
@@ -209,15 +209,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Acedia"
-        "ProductCode" = "8:{A9802713-B97B-4E8C-BA5E-C2D6D158AA7C}"
-        "PackageCode" = "8:{CBF70ECA-7484-4291-9745-CC6AB3333FC5}"
+        "ProductCode" = "8:{23C2A9F6-7736-4B4A-AEE3-2B45343320F5}"
+        "PackageCode" = "8:{44DC69F2-B3BD-4F20-8A71-B3E8190F5483}"
         "UpgradeCode" = "8:{EE72FA30-7A10-42D7-8618-D2C00580CCC9}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.8"
+        "ProductVersion" = "8:1.0.9"
         "Manufacturer" = "8:MukoProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -231,7 +231,7 @@
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
-        "TargetPlatform" = "3:0"
+        "TargetPlatform" = "3:1"
         "PreBuildEvent" = "8:"
         "PostBuildEvent" = "8:"
         "RunPostBuildEvent" = "3:0"
@@ -341,7 +341,7 @@
             "Target" = "8:_551459E38D4F45CBAAB84A52CE348789"
             "Folder" = "8:_D3222820B44B49BB92828E29A1E45FBD"
             "WorkingFolder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
-            "Icon" = "8:"
+            "Icon" = "8:_7B7DEF6511C04DF9BC8E31C78F033B46"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_28E52A337854462BBAD6D7996A7B1A04"
@@ -355,7 +355,7 @@
             "Target" = "8:_551459E38D4F45CBAAB84A52CE348789"
             "Folder" = "8:_8C52AEAAA3D84765A030054D4C6BCAF5"
             "WorkingFolder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
-            "Icon" = "8:"
+            "Icon" = "8:_7B7DEF6511C04DF9BC8E31C78F033B46"
             "Feature" = "8:"
             }
         }
