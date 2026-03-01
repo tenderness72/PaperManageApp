@@ -306,12 +306,8 @@ namespace PaperManagementApp.Views
                 // PDFファイルの処理
                 if (!string.IsNullOrEmpty(_pdfFilePath))
                 {
-                    // PDFファイルをアプリのデータフォルダにコピー（任意）
-                    string appDataPath = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                        "PaperManagementApp",
-                        "PDFs"
-                    );
+                    // 設定からPDF保存先フォルダを取得
+                    string appDataPath = Services.SettingsService.Load().PdfSavePath;
 
                     // フォルダが存在しない場合は作成
                     if (!Directory.Exists(appDataPath))
