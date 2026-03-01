@@ -1,9 +1,10 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using PaperManagementApp.Models;
 using PaperManagementApp.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -54,8 +55,6 @@ namespace PaperManagementApp.Views
             _risImportService = new RisImportService();
             _isEditMode = true;
 
-            LoadPaper(paperId);
-
             HeaderTextBlock.Text = "論文の編集";
 
             // データコンテキストを設定（ボタン表示のための）
@@ -63,6 +62,8 @@ namespace PaperManagementApp.Views
 
             // 編集モードではRISインポートボタンを非表示
             ImportRisButton.Visibility = Visibility.Collapsed;
+
+            Loaded += async (s, e) => await LoadPaperAsync(paperId);
         }
 
         // コンストラクタ（RISインポートモード）
@@ -84,7 +85,7 @@ namespace PaperManagementApp.Views
             ImportRisButton.Visibility = Visibility.Collapsed;
 
             // フォームに値を設定
-            PopulateFormFromPaper(importedPaper);
+            Loaded += (s, e) => PopulateFormFromPaper(importedPaper);
         }
 
         // RISインポートボタンクリック
@@ -150,11 +151,11 @@ namespace PaperManagementApp.Views
         }
 
         // 論文データの読み込み
-        private void LoadPaper(int paperId)
+        private async Task LoadPaperAsync(int paperId)
         {
             try
             {
-                _currentPaper = _paperService.GetPaperById(paperId);
+                _currentPaper = await _paperService.GetPaperByIdAsync(paperId);
 
                 if (_currentPaper == null)
                 {
@@ -244,11 +245,11 @@ namespace PaperManagementApp.Views
         }
 
         // 保存ボタンクリック
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             if (ValidateForm())
             {
-                SavePaper();
+                await SavePaperAsync();
             }
         }
 
@@ -288,7 +289,7 @@ namespace PaperManagementApp.Views
         }
 
         // 論文データの保存
-        private void SavePaper()
+        private async Task SavePaperAsync()
         {
             try
             {
@@ -374,12 +375,12 @@ namespace PaperManagementApp.Views
                 // データベースに保存
                 if (_isEditMode)
                 {
-                    _paperService.UpdatePaper(_currentPaper);
+                    await _paperService.UpdatePaperAsync(_currentPaper);
                     MessageBox.Show("論文情報を更新しました。", "保存完了", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
-                    _paperService.AddPaper(_currentPaper);
+                    await _paperService.AddPaperAsync(_currentPaper);
                     MessageBox.Show("新しい論文を追加しました。", "保存完了", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 

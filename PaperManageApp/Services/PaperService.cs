@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PaperManagementApp.Models;
 using System;
 using System.Collections.Generic;
@@ -28,43 +28,43 @@ namespace PaperManagementApp.Services
         }
 
         // すべての論文を取得
-        public List<Paper> GetAllPapers()
+        public async Task<List<Paper>> GetAllPapersAsync()
         {
-            return _dbContext.Papers
+            return await _dbContext.Papers
                 .Include(p => p.Notes)
                 .OrderByDescending(p => p.UpdatedAt)
-                .ToList();
+                .ToListAsync();
         }
 
         // ID指定で論文を取得
-        public Paper GetPaperById(int id)
+        public async Task<Paper> GetPaperByIdAsync(int id)
         {
-            return _dbContext.Papers
+            return await _dbContext.Papers
                 .Include(p => p.Notes)
-                .FirstOrDefault(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         // お気に入りの論文を取得
-        public List<Paper> GetFavoritePapers()
+        public async Task<List<Paper>> GetFavoritePapersAsync()
         {
-            return _dbContext.Papers
+            return await _dbContext.Papers
                 .Include(p => p.Notes)
                 .Where(p => p.IsFavorite)
                 .OrderByDescending(p => p.UpdatedAt)
-                .ToList();
+                .ToListAsync();
         }
 
         // 検索条件に一致する論文を取得
-        public List<Paper> SearchPapers(string searchText)
+        public async Task<List<Paper>> SearchPapersAsync(string searchText)
         {
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                return GetAllPapers();
+                return await GetAllPapersAsync();
             }
 
             searchText = searchText.ToLower();
 
-            return _dbContext.Papers
+            return await _dbContext.Papers
                 .Include(p => p.Notes)
                 .Where(p =>
                     p.Title.ToLower().Contains(searchText) ||
@@ -79,11 +79,11 @@ namespace PaperManagementApp.Services
                     (p.Discussion != null && p.Discussion.ToLower().Contains(searchText))
                 )
                 .OrderByDescending(p => p.UpdatedAt)
-                .ToList();
+                .ToListAsync();
         }
 
         // フィルタリング（出版年、ジャーナル、臨床領域など）
-        public List<Paper> FilterPapers(int? year = null, string journal = null, string clinicalArea = null)
+        public async Task<List<Paper>> FilterPapersAsync(int? year = null, string journal = null, string clinicalArea = null)
         {
             var query = _dbContext.Papers.Include(p => p.Notes).AsQueryable();
 
@@ -102,25 +102,25 @@ namespace PaperManagementApp.Services
                 query = query.Where(p => p.ClinicalArea.Contains(clinicalArea));
             }
 
-            return query.OrderByDescending(p => p.UpdatedAt).ToList();
+            return await query.OrderByDescending(p => p.UpdatedAt).ToListAsync();
         }
 
         // 論文の追加
-        public Paper AddPaper(Paper paper)
+        public async Task<Paper> AddPaperAsync(Paper paper)
         {
             paper.CreatedAt = DateTime.Now;
             paper.UpdatedAt = DateTime.Now;
 
             _dbContext.Papers.Add(paper);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return paper;
         }
 
         // 論文の更新
-        public Paper UpdatePaper(Paper paper)
+        public async Task<Paper> UpdatePaperAsync(Paper paper)
         {
-            var existingPaper = _dbContext.Papers.Find(paper.Id);
+            var existingPaper = await _dbContext.Papers.FindAsync(paper.Id);
 
             if (existingPaper == null)
             {
@@ -132,15 +132,15 @@ namespace PaperManagementApp.Services
             paper.UpdatedAt = DateTime.Now;
 
             _dbContext.Entry(existingPaper).CurrentValues.SetValues(paper);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return paper;
         }
 
         // セクションのみ更新（概要、方法、結果など）
-        public Paper UpdatePaperSection(int paperId, string sectionName, string content)
+        public async Task<Paper> UpdatePaperSectionAsync(int paperId, string sectionName, string content)
         {
-            var paper = _dbContext.Papers.Find(paperId);
+            var paper = await _dbContext.Papers.FindAsync(paperId);
 
             if (paper == null)
             {
@@ -172,15 +172,15 @@ namespace PaperManagementApp.Services
             }
 
             paper.UpdatedAt = DateTime.Now;
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return paper;
         }
 
         // お気に入り状態の切り替え
-        public Paper ToggleFavorite(int paperId)
+        public async Task<Paper> ToggleFavoriteAsync(int paperId)
         {
-            var paper = _dbContext.Papers.Find(paperId);
+            var paper = await _dbContext.Papers.FindAsync(paperId);
 
             if (paper == null)
             {
@@ -190,15 +190,15 @@ namespace PaperManagementApp.Services
             paper.IsFavorite = !paper.IsFavorite;
             paper.UpdatedAt = DateTime.Now;
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return paper;
         }
 
         // 論文の削除
-        public bool DeletePaper(int paperId)
+        public async Task<bool> DeletePaperAsync(int paperId)
         {
-            var paper = _dbContext.Papers.Find(paperId);
+            var paper = await _dbContext.Papers.FindAsync(paperId);
 
             if (paper == null)
             {
@@ -220,27 +220,27 @@ namespace PaperManagementApp.Services
             }
 
             _dbContext.Papers.Remove(paper);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return true;
         }
 
         // 論文メモの追加
-        public PaperNote AddPaperNote(PaperNote note)
+        public async Task<PaperNote> AddPaperNoteAsync(PaperNote note)
         {
             note.CreatedAt = DateTime.Now;
             note.UpdatedAt = DateTime.Now;
 
             _dbContext.PaperNotes.Add(note);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return note;
         }
 
         // 論文メモの更新
-        public PaperNote UpdatePaperNote(PaperNote note)
+        public async Task<PaperNote> UpdatePaperNoteAsync(PaperNote note)
         {
-            var existingNote = _dbContext.PaperNotes.Find(note.Id);
+            var existingNote = await _dbContext.PaperNotes.FindAsync(note.Id);
 
             if (existingNote == null)
             {
@@ -251,15 +251,15 @@ namespace PaperManagementApp.Services
             note.UpdatedAt = DateTime.Now;
 
             _dbContext.Entry(existingNote).CurrentValues.SetValues(note);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return note;
         }
 
         // 論文メモの削除
-        public bool DeletePaperNote(int noteId)
+        public async Task<bool> DeletePaperNoteAsync(int noteId)
         {
-            var note = _dbContext.PaperNotes.Find(noteId);
+            var note = await _dbContext.PaperNotes.FindAsync(noteId);
 
             if (note == null)
             {
@@ -267,97 +267,91 @@ namespace PaperManagementApp.Services
             }
 
             _dbContext.PaperNotes.Remove(note);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return true;
         }
 
         // 個別値のリストを取得（フィルター選択肢用）
-        public List<int> GetYearsList()
+        public async Task<List<int>> GetYearsListAsync()
         {
-            return _dbContext.Papers
+            return await _dbContext.Papers
                 .Select(p => p.Year)
                 .Distinct()
                 .OrderByDescending(y => y)
-                .ToList();
+                .ToListAsync();
         }
 
-        public List<string> GetJournalsList()
+        public async Task<List<string>> GetJournalsListAsync()
         {
-            return _dbContext.Papers
+            return await _dbContext.Papers
                 .Select(p => p.Journal)
                 .Where(j => !string.IsNullOrEmpty(j))
                 .Distinct()
                 .OrderBy(j => j)
-                .ToList();
+                .ToListAsync();
         }
 
-        public List<string> GetClinicalAreasList()
+        public async Task<List<string>> GetClinicalAreasListAsync()
         {
             // カンマ区切りの値を分割して一意のリストを取得
-            var areas = new List<string>();
+            var papers = await _dbContext.Papers
+                .Select(p => p.ClinicalArea)
+                .Where(c => !string.IsNullOrEmpty(c))
+                .ToListAsync();
 
-            foreach (var paper in _dbContext.Papers)
+            var areas = new HashSet<string>();
+            foreach (var clinicalArea in papers)
             {
-                if (!string.IsNullOrEmpty(paper.ClinicalArea))
+                foreach (var area in clinicalArea.Split(','))
                 {
-                    var paperAreas = paper.ClinicalAreaArray;
-                    foreach (var area in paperAreas)
-                    {
-                        string trimmedArea = area.Trim();
-                        if (!string.IsNullOrEmpty(trimmedArea) && !areas.Contains(trimmedArea))
-                        {
-                            areas.Add(trimmedArea);
-                        }
-                    }
+                    string trimmed = area.Trim();
+                    if (!string.IsNullOrEmpty(trimmed))
+                        areas.Add(trimmed);
                 }
             }
 
             return areas.OrderBy(a => a).ToList();
         }
 
-        public List<string> GetApproachesList()
+        public async Task<List<string>> GetApproachesListAsync()
         {
             // カンマ区切りの値を分割して一意のリストを取得
-            var approaches = new List<string>();
+            var papers = await _dbContext.Papers
+                .Select(p => p.Approach)
+                .Where(a => !string.IsNullOrEmpty(a))
+                .ToListAsync();
 
-            foreach (var paper in _dbContext.Papers)
+            var approaches = new HashSet<string>();
+            foreach (var approach in papers)
             {
-                if (!string.IsNullOrEmpty(paper.Approach))
+                foreach (var item in approach.Split(','))
                 {
-                    var paperApproaches = paper.ApproachArray;
-                    foreach (var approach in paperApproaches)
-                    {
-                        string trimmedApproach = approach.Trim();
-                        if (!string.IsNullOrEmpty(trimmedApproach) && !approaches.Contains(trimmedApproach))
-                        {
-                            approaches.Add(trimmedApproach);
-                        }
-                    }
+                    string trimmed = item.Trim();
+                    if (!string.IsNullOrEmpty(trimmed))
+                        approaches.Add(trimmed);
                 }
             }
 
             return approaches.OrderBy(a => a).ToList();
         }
 
-        public List<string> GetTagsList()
+        public async Task<List<string>> GetTagsListAsync()
         {
             // カンマ区切りの値を分割して一意のリストを取得
-            var tags = new List<string>();
+            var papers = await _dbContext.Papers
+                .Select(p => p.Tags)
+                .Where(t => !string.IsNullOrEmpty(t))
+                .ToListAsync();
 
-            foreach (var paper in _dbContext.Papers)
+            var tags = new HashSet<string>();
+            foreach (var tag in papers)
             {
-                if (!string.IsNullOrEmpty(paper.Tags))
+                foreach (var item in tag.Split(','))
                 {
-                    var paperTags = paper.TagArray;
-                    foreach (var tag in paperTags)
-                    {
-                        string trimmedTag = tag.Trim();
-                        if (!string.IsNullOrEmpty(trimmedTag) && !tags.Contains(trimmedTag))
-                        {
-                            tags.Add(trimmedTag);
-                        }
-                    }
+                    string trimmed = item.Trim();
+                    if (!string.IsNullOrEmpty(trimmed))
+                        tags.Add(trimmed);
                 }
             }
 

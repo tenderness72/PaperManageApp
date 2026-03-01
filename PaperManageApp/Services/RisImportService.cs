@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 namespace PaperManagementApp.Services
 {
     public class RisImportService : IDisposable
@@ -215,18 +216,18 @@ namespace PaperManagementApp.Services
         /// <summary>
         /// 論文をデータベースに追加
         /// </summary>
-        public void SaveImportedPaper(Paper paper)
+        public async Task SaveImportedPaperAsync(Paper paper)
         {
-            _paperService.AddPaper(paper);
+            await _paperService.AddPaperAsync(paper);
         }
         /// <summary>
         /// 複数の論文をデータベースに追加
         /// </summary>
-        public void SaveImportedPapers(List<Paper> papers)
+        public async Task SaveImportedPapersAsync(List<Paper> papers)
         {
             foreach (var paper in papers)
             {
-                _paperService.AddPaper(paper);
+                await _paperService.AddPaperAsync(paper);
             }
         }
     }

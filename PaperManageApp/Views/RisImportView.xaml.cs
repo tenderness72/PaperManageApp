@@ -1,8 +1,9 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using PaperManagementApp.Models;
 using PaperManagementApp.Services;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -49,7 +50,7 @@ namespace PaperManagementApp.Views
         {
             try
             {
-                // RISファイルを読み込み
+                // RISファイルを読み込み（ファイル解析は同期で問題なし）
                 _importedPapers = _risImportService.ImportFromRisFile(filePath);
 
                 // DataGridに表示
@@ -74,7 +75,7 @@ namespace PaperManagementApp.Views
             }
         }
 
-        private void ImportButton_Click(object sender, RoutedEventArgs e)
+        private async void ImportButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -108,7 +109,7 @@ namespace PaperManagementApp.Views
                 if (result == MessageBoxResult.Yes)
                 {
                     // データベースに保存
-                    _risImportService.SaveImportedPapers(selectedPapers);
+                    await _risImportService.SaveImportedPapersAsync(selectedPapers);
 
                     MessageBox.Show($"{selectedPapers.Count}件の論文を正常にインポートしました。",
                         "インポート完了", MessageBoxButton.OK, MessageBoxImage.Information);

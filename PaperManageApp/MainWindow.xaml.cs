@@ -1,4 +1,4 @@
-﻿using PaperManagementApp.Models;
+using PaperManagementApp.Models;
 using PaperManagementApp.Services;
 using PaperManagementApp.Views;
 using System;
@@ -21,18 +21,18 @@ namespace PaperManagementApp
             // 初期画面として論文一覧を表示
             MainFrame.Navigate(new PaperListView());
 
-            // フィルター選択肢の読み込み
-            LoadFilterOptions();
+            // フィルター選択肢の読み込み（非同期）
+            Loaded += async (s, e) => await LoadFilterOptionsAsync();
         }
 
-        private void LoadFilterOptions()
+        private async System.Threading.Tasks.Task LoadFilterOptionsAsync()
         {
             try
             {
                 // 年のフィルター選択肢を読み込み
                 YearFilterComboBox.Items.Clear();
                 YearFilterComboBox.Items.Add(new ComboBoxItem { Content = "すべての年" });
-                foreach (var year in _paperService.GetYearsList())
+                foreach (var year in await _paperService.GetYearsListAsync())
                 {
                     YearFilterComboBox.Items.Add(new ComboBoxItem { Content = year.ToString() });
                 }
@@ -41,7 +41,7 @@ namespace PaperManagementApp
                 // ジャーナルのフィルター選択肢を読み込み
                 JournalFilterComboBox.Items.Clear();
                 JournalFilterComboBox.Items.Add(new ComboBoxItem { Content = "すべてのジャーナル" });
-                foreach (var journal in _paperService.GetJournalsList())
+                foreach (var journal in await _paperService.GetJournalsListAsync())
                 {
                     JournalFilterComboBox.Items.Add(new ComboBoxItem { Content = journal });
                 }
@@ -50,7 +50,7 @@ namespace PaperManagementApp
                 // 臨床領域のフィルター選択肢を読み込み
                 ClinicalAreaFilterComboBox.Items.Clear();
                 ClinicalAreaFilterComboBox.Items.Add(new ComboBoxItem { Content = "すべての臨床領域" });
-                foreach (var area in _paperService.GetClinicalAreasList())
+                foreach (var area in await _paperService.GetClinicalAreasListAsync())
                 {
                     ClinicalAreaFilterComboBox.Items.Add(new ComboBoxItem { Content = area });
                 }
@@ -107,19 +107,19 @@ namespace PaperManagementApp
         }
 
         // 検索テキスト変更
-        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private async void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             _currentSearchQuery = SearchTextBox.Text;
 
             // 検索クエリが変わったらリストビューに通知
             if (MainFrame.Content is PaperListView listView)
             {
-                listView.UpdateSearch(_currentSearchQuery);
+                await listView.UpdateSearch(_currentSearchQuery);
             }
         }
 
         // フィルターコンボボックス選択変更
-        private void FilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void FilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (MainFrame.Content is PaperListView listView)
             {
@@ -157,7 +157,7 @@ namespace PaperManagementApp
                 }
 
                 // フィルターを適用
-                listView.ApplyFilter(selectedYear, selectedJournal, selectedClinicalArea);
+                await listView.ApplyFilter(selectedYear, selectedJournal, selectedClinicalArea);
             }
         }
     }

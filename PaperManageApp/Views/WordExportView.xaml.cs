@@ -1,8 +1,9 @@
-﻿using PaperManagementApp.Models;
+using PaperManagementApp.Models;
 using PaperManagementApp.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -23,10 +24,10 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _wordService = new WordService();
 
-            LoadPapers();
             CheckWordStatus();
-            //SearchTextBox.TextChanged += SearchTextBox_TextChanged;
             this.Unloaded += WordExportView_Unloaded;
+
+            Loaded += async (s, e) => await LoadPapersAsync();
         }
 
         // ページがアンロードされるときのイベントハンドラー
@@ -40,11 +41,11 @@ namespace PaperManagementApp.Views
         }
 
         // 論文データの読み込み
-        private void LoadPapers()
+        private async Task LoadPapersAsync()
         {
             try
             {
-                _allPapers = _paperService.GetAllPapers();
+                _allPapers = await _paperService.GetAllPapersAsync();
                 _displayedPapers = new List<Paper>(_allPapers);
                 PapersDataGrid.ItemsSource = _displayedPapers;
             }
@@ -123,7 +124,7 @@ namespace PaperManagementApp.Views
         }
 
         // 検索ボタンクリック
-        private void SearchButton_Click(object sender, RoutedEventArgs e)
+        private async void SearchButton_Click(object sender, RoutedEventArgs e)
         {
             string searchQuery = SearchTextBox.Text.Trim();
 
@@ -137,7 +138,7 @@ namespace PaperManagementApp.Views
                 else
                 {
                     // 検索実行
-                    _displayedPapers = _paperService.SearchPapers(searchQuery);
+                    _displayedPapers = await _paperService.SearchPapersAsync(searchQuery);
                 }
 
                 PapersDataGrid.ItemsSource = null;
@@ -151,29 +152,29 @@ namespace PaperManagementApp.Views
         }
 
         // 本文引用（例：牧村(2006)）の挿入
-        private void InsertInTextCitationButton_Click(object sender, RoutedEventArgs e)
+        private async void InsertInTextCitationButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             if (button != null && button.Tag != null)
             {
                 int paperId = Convert.ToInt32(button.Tag);
-                InsertInTextCitation(paperId);
+                await InsertInTextCitationAsync(paperId);
             }
         }
 
         // 文献リスト用引用の挿入
-        private void InsertFullCitationButton_Click(object sender, RoutedEventArgs e)
+        private async void InsertFullCitationButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             if (button != null && button.Tag != null)
             {
                 int paperId = Convert.ToInt32(button.Tag);
-                InsertFullCitation(paperId);
+                await InsertFullCitationAsync(paperId);
             }
         }
 
         // 本文引用の挿入処理
-        private void InsertInTextCitation(int paperId)
+        private async Task InsertInTextCitationAsync(int paperId)
         {
             try
             {
@@ -182,7 +183,7 @@ namespace PaperManagementApp.Views
                     return;
                 }
 
-                var paper = _paperService.GetPaperById(paperId);
+                var paper = await _paperService.GetPaperByIdAsync(paperId);
 
                 if (paper == null)
                 {
@@ -208,7 +209,7 @@ namespace PaperManagementApp.Views
         }
 
         // 文献リスト用引用の挿入処理
-        private void InsertFullCitation(int paperId)
+        private async Task InsertFullCitationAsync(int paperId)
         {
             try
             {
@@ -217,7 +218,7 @@ namespace PaperManagementApp.Views
                     return;
                 }
 
-                var paper = _paperService.GetPaperById(paperId);
+                var paper = await _paperService.GetPaperByIdAsync(paperId);
 
                 if (paper == null)
                 {

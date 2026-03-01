@@ -1,7 +1,8 @@
-﻿using PaperManagementApp.Models;
+using PaperManagementApp.Models;
 using PaperManagementApp.Services;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -27,7 +28,7 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _showFavoritesOnly = false;
 
-            LoadPapers();
+            Loaded += async (s, e) => await LoadPapersAsync();
         }
 
         // コンストラクタ（お気に入りのみ表示）
@@ -38,21 +39,21 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _showFavoritesOnly = favoritesOnly;
 
-            LoadPapers();
+            Loaded += async (s, e) => await LoadPapersAsync();
         }
 
         // 論文データの読み込み
-        private void LoadPapers()
+        private async Task LoadPapersAsync()
         {
             try
             {
                 if (_showFavoritesOnly)
                 {
-                    _allPapers = _paperService.GetFavoritePapers();
+                    _allPapers = await _paperService.GetFavoritePapersAsync();
                 }
                 else
                 {
-                    _allPapers = _paperService.GetAllPapers();
+                    _allPapers = await _paperService.GetAllPapersAsync();
                 }
 
                 _displayedPapers = new List<Paper>(_allPapers);
@@ -65,42 +66,42 @@ namespace PaperManagementApp.Views
             }
         }
 
-        // 検索クエリの更新
-        public void UpdateSearch(string searchQuery)
+        // 検索クエリの更新（MainWindow から呼ばれる）
+        public async Task UpdateSearch(string searchQuery)
         {
             _currentSearchQuery = searchQuery;
-            ApplyFiltersAndSearch();
+            await ApplyFiltersAndSearchAsync();
         }
 
-        // フィルターの適用
-        public void ApplyFilter(int? year, string journal, string clinicalArea)
+        // フィルターの適用（MainWindow から呼ばれる）
+        public async Task ApplyFilter(int? year, string journal, string clinicalArea)
         {
             _selectedYear = year;
             _selectedJournal = journal;
             _selectedClinicalArea = clinicalArea;
 
-            ApplyFiltersAndSearch();
+            await ApplyFiltersAndSearchAsync();
         }
 
         // 検索とフィルターの適用
-        private void ApplyFiltersAndSearch()
+        private async Task ApplyFiltersAndSearchAsync()
         {
             try
             {
                 // 基本リストの取得（お気に入りのみまたは全て）
                 if (_showFavoritesOnly)
                 {
-                    _allPapers = _paperService.GetFavoritePapers();
+                    _allPapers = await _paperService.GetFavoritePapersAsync();
                 }
                 else
                 {
-                    _allPapers = _paperService.GetAllPapers();
+                    _allPapers = await _paperService.GetAllPapersAsync();
                 }
 
                 // 検索条件があれば絞り込み
                 if (!string.IsNullOrWhiteSpace(_currentSearchQuery))
                 {
-                    var searchResults = _paperService.SearchPapers(_currentSearchQuery);
+                    var searchResults = await _paperService.SearchPapersAsync(_currentSearchQuery);
 
                     // お気に入りのみモードなら、検索結果からお気に入りだけを抽出
                     if (_showFavoritesOnly)
@@ -121,7 +122,7 @@ namespace PaperManagementApp.Views
                     }
                 }
 
-                // フィルターの適用
+                // フィルターの適用（in-memory）
                 _displayedPapers = new List<Paper>();
 
                 foreach (var paper in _allPapers)
@@ -164,18 +165,18 @@ namespace PaperManagementApp.Views
         }
 
         // 削除ボタンクリック
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        private async void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             if (button != null && button.Tag != null)
             {
                 int paperId = Convert.ToInt32(button.Tag);
-                DeletePaper(paperId);
+                await DeletePaperAsync(paperId);
             }
         }
 
         // 削除処理
-        private void DeletePaper(int paperId)
+        private async Task DeletePaperAsync(int paperId)
         {
             var result = MessageBox.Show("この論文を削除してもよろしいですか？\nこの操作は取り消せません。",
                 "削除の確認", MessageBoxButton.YesNo, MessageBoxImage.Warning);
@@ -184,15 +185,15 @@ namespace PaperManagementApp.Views
             {
                 try
                 {
-                    bool success = _paperService.DeletePaper(paperId);
+                    bool success = await _paperService.DeletePaperAsync(paperId);
 
                     if (success)
                     {
                         MessageBox.Show("論文を削除しました。", "削除完了", MessageBoxButton.OK, MessageBoxImage.Information);
 
                         // リストを更新
-                        LoadPapers();
-                        ApplyFiltersAndSearch();
+                        await LoadPapersAsync();
+                        await ApplyFiltersAndSearchAsync();
                     }
                     else
                     {
@@ -207,43 +208,43 @@ namespace PaperManagementApp.Views
         }
 
         // お気に入りチェックボックス変更
-        private void FavoriteCheckBox_Checked(object sender, RoutedEventArgs e)
+        private async void FavoriteCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             var checkbox = sender as CheckBox;
             if (checkbox != null && checkbox.Tag != null)
             {
                 int paperId = Convert.ToInt32(checkbox.Tag);
-                UpdateFavoriteStatus(paperId, true);
+                await UpdateFavoriteStatusAsync(paperId, true);
             }
         }
 
-        private void FavoriteCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        private async void FavoriteCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             var checkbox = sender as CheckBox;
             if (checkbox != null && checkbox.Tag != null)
             {
                 int paperId = Convert.ToInt32(checkbox.Tag);
-                UpdateFavoriteStatus(paperId, false);
+                await UpdateFavoriteStatusAsync(paperId, false);
             }
         }
 
         // お気に入り状態の更新
-        private void UpdateFavoriteStatus(int paperId, bool isFavorite)
+        private async Task UpdateFavoriteStatusAsync(int paperId, bool isFavorite)
         {
             try
             {
-                var paper = _paperService.GetPaperById(paperId);
+                var paper = await _paperService.GetPaperByIdAsync(paperId);
 
                 if (paper != null)
                 {
                     paper.IsFavorite = isFavorite;
-                    _paperService.UpdatePaper(paper);
+                    await _paperService.UpdatePaperAsync(paper);
 
                     // お気に入りのみ表示モードでお気に入りを解除した場合はリストから削除
                     if (_showFavoritesOnly && !isFavorite)
                     {
-                        LoadPapers();
-                        ApplyFiltersAndSearch();
+                        await LoadPapersAsync();
+                        await ApplyFiltersAndSearchAsync();
                     }
                 }
             }
@@ -294,13 +295,13 @@ namespace PaperManagementApp.Views
         }
 
         // コンテキストメニュー - 削除
-        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var selectedPaper = PapersDataGrid.SelectedItem as Paper;
 
             if (selectedPaper != null)
             {
-                DeletePaper(selectedPaper.Id);
+                await DeletePaperAsync(selectedPaper.Id);
             }
         }
 

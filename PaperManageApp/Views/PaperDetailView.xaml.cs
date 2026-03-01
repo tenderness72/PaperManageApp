@@ -1,8 +1,9 @@
-﻿using PaperManagementApp.Models;
+using PaperManagementApp.Models;
 using PaperManagementApp.Services;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -23,22 +24,21 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _wordService = new WordService();
 
-            // NavigationServiceのイベントを登録（Loaded後に行う必要があるため）
-            this.Loaded += (s, e) => {
+            Loaded += async (s, e) =>
+            {
                 if (NavigationService != null)
                 {
                     NavigationService.Navigating += NavigationService_Navigating;
                 }
+                await LoadPaperAsync(paperId);
             };
-
-            LoadPaper(paperId);
         }
 
-        private void LoadPaper(int paperId)
+        private async Task LoadPaperAsync(int paperId)
         {
             try
             {
-                _currentPaper = _paperService.GetPaperById(paperId);
+                _currentPaper = await _paperService.GetPaperByIdAsync(paperId);
 
                 if (_currentPaper == null)
                 {
@@ -107,7 +107,12 @@ namespace PaperManagementApp.Views
             SaveButton.IsEnabled = true;
         }
 
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            await SavePaperAsync();
+        }
+
+        private async Task SavePaperAsync()
         {
             try
             {
@@ -120,7 +125,7 @@ namespace PaperManagementApp.Views
                 _currentPaper.AdditionalNotes = AdditionalNotesTextBox.Text;
 
                 // データベースを更新
-                _paperService.UpdatePaper(_currentPaper);
+                await _paperService.UpdatePaperAsync(_currentPaper);
 
                 // 変更フラグをリセット
                 _isDataDirty = false;
@@ -134,7 +139,7 @@ namespace PaperManagementApp.Views
             }
         }
 
-        private void EditButton_Click(object sender, RoutedEventArgs e)
+        private async void EditButton_Click(object sender, RoutedEventArgs e)
         {
             // 編集前に変更があれば保存を促す
             if (_isDataDirty)
@@ -144,7 +149,7 @@ namespace PaperManagementApp.Views
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    SaveButton_Click(sender, e);
+                    await SavePaperAsync();
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
@@ -156,7 +161,7 @@ namespace PaperManagementApp.Views
             NavigationService.Navigate(new PaperEditView(_currentPaper.Id));
         }
 
-        private void BackButton_Click(object sender, RoutedEventArgs e)
+        private async void BackButton_Click(object sender, RoutedEventArgs e)
         {
             // 戻る前に変更があれば保存を促す
             if (_isDataDirty)
@@ -166,7 +171,7 @@ namespace PaperManagementApp.Views
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    SaveButton_Click(sender, e);
+                    await SavePaperAsync();
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
@@ -278,6 +283,7 @@ namespace PaperManagementApp.Views
         }
 
         // NavigatingCancelEventArgsを処理するイベントハンドラー
+        // ナビゲーションのキャンセルが必要なため同期で動作する
         private void NavigationService_Navigating(object sender, NavigatingCancelEventArgs e)
         {
             // 未保存の変更があれば確認
@@ -288,7 +294,8 @@ namespace PaperManagementApp.Views
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    SaveButton_Click(null, null);
+                    // fire-and-forget で保存（ナビゲーション後も完了する）
+                    _ = SavePaperAsync();
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
@@ -332,7 +339,8 @@ namespace PaperManagementApp.Views
                     if (result == MessageBoxResult.Yes)
                     {
                         _currentPaper.FilePath = null;
-                        _paperService.UpdatePaper(_currentPaper);
+                        // fire-and-forget で更新
+                        _ = _paperService.UpdatePaperAsync(_currentPaper);
                         MessageBox.Show("ファイルパスを削除しました。", "削除完了", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     return;
