@@ -7,12 +7,23 @@ using System.Text;
 using System.Text.RegularExpressions;
 namespace PaperManagementApp.Services
 {
-    public class RisImportService
+    public class RisImportService : IDisposable
     {
         private readonly PaperService _paperService;
+        private bool _disposed = false;
+
         public RisImportService()
         {
             _paperService = new PaperService();
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _paperService?.Dispose();
+                _disposed = true;
+            }
         }
         /// <summary>
         /// RISファイルから論文情報を読み込む
@@ -100,29 +111,18 @@ namespace PaperManagementApp.Services
                 // 複数の区切り文字で分割
                 string[] authors = risData["AU"].Split(new[] { " and ", ";" }, StringSplitOptions.RemoveEmptyEntries);
 
-                // 各著者の名前を処理し、最後の著者以外にピリオドをつける
+                // 各著者の名前を処理してリストに格納
                 List<string> formattedAuthors = new List<string>();
-                for (int i = 0; i < authors.Length; i++)
+                foreach (string author in authors)
                 {
-                    string trimmedAuthor = authors[i].Trim();
-
-                    // 既存のピリオドを削除
-                    trimmedAuthor = trimmedAuthor.TrimEnd('.');
-
-                    // 最後の著者以外にはピリオドをつける
-                    if (i < authors.Length - 1)
-                    {
-                        formattedAuthors.Add(trimmedAuthor + ".");
-                    }
-                    else
-                    {
-                        // 最後の著者にはピリオドをつけない
+                    // 末尾のピリオドを削除してトリム
+                    string trimmedAuthor = author.Trim().TrimEnd('.');
+                    if (!string.IsNullOrEmpty(trimmedAuthor))
                         formattedAuthors.Add(trimmedAuthor);
-                    }
                 }
 
-                // スペースで連結
-                paper.Authors = string.Join(" ", formattedAuthors);
+                // | で連結（AuthorArray の分割規則に対応）
+                paper.Authors = string.Join("|", formattedAuthors);
             }
             // 出版年
             if (risData.ContainsKey("PY"))

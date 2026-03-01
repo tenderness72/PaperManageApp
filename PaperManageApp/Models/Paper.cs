@@ -68,10 +68,19 @@ namespace PaperManagementApp.Models
         public virtual ICollection<PaperNote> Notes { get; set; }
 
         // 著者を配列として取得
+        // 新形式: | 区切り、旧形式: . 区切り（後方互換）
         [NotMapped]
         public string[] AuthorArray
         {
-            get { return Authors?.Split('.') ?? new string[0]; }
+            get
+            {
+                if (string.IsNullOrEmpty(Authors)) return new string[0];
+                char separator = Authors.Contains('|') ? '|' : '.';
+                return Authors.Split(separator)
+                    .Select(a => a.Trim())
+                    .Where(a => !string.IsNullOrEmpty(a))
+                    .ToArray();
+            }
         }
 
         // タグを配列として取得
@@ -106,8 +115,7 @@ namespace PaperManagementApp.Models
         // APA形式の引用を生成（本文中の引用用）
         public string GetInTextCitation()
         {
-            // 著者が区切られているか確認
-            string[] authorList = Authors?.Split('.') ?? new string[0];
+            string[] authorList = AuthorArray;
 
             if (authorList.Length == 0)
             {
@@ -118,7 +126,7 @@ namespace PaperManagementApp.Models
             List<string> lastNames = new List<string>();
             foreach (string authorName in authorList)
             {
-                lastNames.Add(ExtractLastName(authorName.Trim()));
+                lastNames.Add(ExtractLastName(authorName));
             }
 
             // 引用の生成
@@ -177,8 +185,7 @@ namespace PaperManagementApp.Models
         // 参考文献リスト用の完全な引用情報を生成
         public string GetFullCitation()
         {
-            // 著者が区切られているか確認
-            string[] authorList = Authors?.Split('.') ?? new string[0];
+            string[] authorList = AuthorArray;
 
             if (authorList.Length == 0)
             {
@@ -189,7 +196,7 @@ namespace PaperManagementApp.Models
             List<string> formattedAuthors = new List<string>();
             foreach (string authorName in authorList)
             {
-                formattedAuthors.Add(FormatAuthorName(authorName.Trim()));
+                formattedAuthors.Add(FormatAuthorName(authorName));
             }
 
             string authorText = string.Join("・", formattedAuthors);

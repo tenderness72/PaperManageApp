@@ -8,13 +8,23 @@ using System.Threading.Tasks;
 
 namespace PaperManagementApp.Services
 {
-    public class PaperService
+    public class PaperService : IDisposable
     {
         private readonly DatabaseContext _dbContext;
+        private bool _disposed = false;
 
         public PaperService()
         {
             _dbContext = new DatabaseContext();
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _dbContext?.Dispose();
+                _disposed = true;
+            }
         }
 
         // すべての論文を取得
@@ -60,13 +70,13 @@ namespace PaperManagementApp.Services
                     p.Title.ToLower().Contains(searchText) ||
                     p.Authors.ToLower().Contains(searchText) ||
                     p.Journal.ToLower().Contains(searchText) ||
-                    p.Abstract.ToLower().Contains(searchText) ||
-                    p.Keywords.ToLower().Contains(searchText) ||
-                    p.Tags.ToLower().Contains(searchText) ||
-                    p.ProblemAndPurpose.ToLower().Contains(searchText) ||
-                    p.Method.ToLower().Contains(searchText) ||
-                    p.Results.ToLower().Contains(searchText) ||
-                    p.Discussion.ToLower().Contains(searchText)
+                    (p.Abstract != null && p.Abstract.ToLower().Contains(searchText)) ||
+                    (p.Keywords != null && p.Keywords.ToLower().Contains(searchText)) ||
+                    (p.Tags != null && p.Tags.ToLower().Contains(searchText)) ||
+                    (p.ProblemAndPurpose != null && p.ProblemAndPurpose.ToLower().Contains(searchText)) ||
+                    (p.Method != null && p.Method.ToLower().Contains(searchText)) ||
+                    (p.Results != null && p.Results.ToLower().Contains(searchText)) ||
+                    (p.Discussion != null && p.Discussion.ToLower().Contains(searchText))
                 )
                 .OrderByDescending(p => p.UpdatedAt)
                 .ToList();
