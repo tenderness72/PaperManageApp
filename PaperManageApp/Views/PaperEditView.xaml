@@ -90,7 +90,18 @@
 
                             <!-- DOI -->
                             <TextBlock Grid.Row="6" Grid.Column="0" Text="DOI" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="6" Grid.Column="1" x:Name="DoiTextBox" Margin="0,5" Padding="5"/>
+                            <Grid Grid.Row="6" Grid.Column="1" Margin="0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="DoiTextBox" Padding="5" Margin="0,0,5,0"/>
+                                <Button Grid.Column="1"
+                                        x:Name="FetchDoiButton"
+                                        Content="DOI取得"
+                                        Click="FetchDoiButton_Click"
+                                        Padding="10,5"/>
+                            </Grid>
 
                             <!-- お気に入り -->
                             <TextBlock Grid.Row="7" Grid.Column="0" Text="お気に入り" VerticalAlignment="Center"/>

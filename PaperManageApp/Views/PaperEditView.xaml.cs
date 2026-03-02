@@ -16,6 +16,7 @@ namespace PaperManagementApp.Views
     {
         private PaperService _paperService;
         private RisImportService _risImportService;
+        private DoiMetadataService _doiMetadataService;
         private Paper _currentPaper;
         private bool _isEditMode = false;
         private string _pdfFilePath = null;
@@ -33,6 +34,7 @@ namespace PaperManagementApp.Views
 
             _paperService = new PaperService();
             _risImportService = new RisImportService();
+            _doiMetadataService = new DoiMetadataService();
             _currentPaper = new Paper();
             _isEditMode = false;
 
@@ -53,6 +55,7 @@ namespace PaperManagementApp.Views
 
             _paperService = new PaperService();
             _risImportService = new RisImportService();
+            _doiMetadataService = new DoiMetadataService();
             _isEditMode = true;
 
             HeaderTextBlock.Text = "論文の編集";
@@ -73,6 +76,7 @@ namespace PaperManagementApp.Views
 
             _paperService = new PaperService();
             _risImportService = new RisImportService();
+            _doiMetadataService = new DoiMetadataService();
             _currentPaper = importedPaper;
             _isEditMode = false;
 
@@ -137,6 +141,128 @@ namespace PaperManagementApp.Views
         }
 
         // 論文選択ダイアログを表示
+        private async void FetchDoiButton_Click(object sender, RoutedEventArgs e)
+        {
+            string doi = DoiTextBox.Text?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(doi))
+            {
+                MessageBox.Show("DOIを入力してから取得してください。",
+                    "入力エラー", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                FetchDoiButton.IsEnabled = false;
+                FetchDoiButton.Content = "取得中...";
+
+                var fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(doi);
+                if (fetchedPaper == null)
+                {
+                    MessageBox.Show("DOIからメタデータを取得できませんでした。DOI形式やネットワークを確認してください。",
+                        "取得失敗", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                bool hasExistingInput = !string.IsNullOrWhiteSpace(TitleTextBox.Text) ||
+                                        !string.IsNullOrWhiteSpace(AuthorsTextBox.Text) ||
+                                        !string.IsNullOrWhiteSpace(JournalTextBox.Text);
+
+                if (hasExistingInput)
+                {
+                    var overwrite = MessageBox.Show(
+                        "現在入力中のタイトル・著者・雑誌名などをDOI取得結果で上書きしますか？",
+                        "上書き確認",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (overwrite != MessageBoxResult.Yes)
+                    {
+                        return;
+                    }
+                }
+
+                ApplyFetchedMetadataToForm(fetchedPaper);
+                MessageBox.Show("DOIからメタデータを取得しました。必要に応じて内容を確認してください。",
+                    "取得完了", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"DOI取得中にエラーが発生しました: {ex.Message}",
+                    "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                FetchDoiButton.IsEnabled = true;
+                FetchDoiButton.Content = "DOI取得";
+            }
+        }
+
+        private void ApplyFetchedMetadataToForm(Paper fetchedPaper)
+        {
+            DoiTextBox.Text = DoiMetadataService.NormalizeDoi(fetchedPaper.DOI);
+
+            if (!string.IsNullOrWhiteSpace(fetchedPaper.Title))
+            {
+                TitleTextBox.Text = fetchedPaper.Title;
+            }
+
+            if (!string.IsNullOrWhiteSpace(fetchedPaper.Authors))
+            {
+                AuthorsTextBox.Text = fetchedPaper.Authors;
+            }
+
+            if (fetchedPaper.Year > 0)
+            {
+                YearTextBox.Text = fetchedPaper.Year.ToString();
+            }
+
+            if (!string.IsNullOrWhiteSpace(fetchedPaper.Journal))
+            {
+                JournalTextBox.Text = fetchedPaper.Journal;
+            }
+
+            if (!string.IsNullOrWhiteSpace(fetchedPaper.Volume))
+            {
+                VolumeTextBox.Text = fetchedPaper.Volume;
+            }
+
+            if (!string.IsNullOrWhiteSpace(fetchedPaper.Pages))
+            {
+                PagesTextBox.Text = fetchedPaper.Pages;
+            }
+
+            if (!string.IsNullOrWhiteSpace(fetchedPaper.Keywords))
+            {
+                KeywordsTextBox.Text = fetchedPaper.Keywords;
+            }
+
+            if (!string.IsNullOrWhiteSpace(fetchedPaper.Abstract))
+            {
+                AbstractTextBox.Text = fetchedPaper.Abstract;
+            }
+
+            SelectPaperType(fetchedPaper.PaperType);
+        }
+
+        private void SelectPaperType(string? paperType)
+        {
+            if (string.IsNullOrWhiteSpace(paperType))
+            {
+                return;
+            }
+
+            for (int i = 0; i < PaperTypeComboBox.Items.Count; i++)
+            {
+                if (PaperTypeComboBox.Items[i] is ComboBoxItem item &&
+                    string.Equals(item.Content?.ToString(), paperType, StringComparison.Ordinal))
+                {
+                    PaperTypeComboBox.SelectedIndex = i;
+                    return;
+                }
+            }
+        }
+
         private Paper ShowPaperSelectionDialog(List<Paper> papers)
         {
             // 論文選択ダイアログを表示
