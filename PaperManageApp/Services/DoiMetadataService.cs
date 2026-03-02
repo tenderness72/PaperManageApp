@@ -64,6 +64,84 @@ namespace PaperManagementApp.Services
             return paper;
         }
 
+        public async Task<Paper?> SearchPaperByMetadataAsync(string title, string authors, int? year, string journal)
+        {
+            var queryParts = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                queryParts.Add(title.Trim());
+            }
+
+            if (!string.IsNullOrWhiteSpace(authors))
+            {
+                queryParts.Add(authors.Trim().Replace("|", " "));
+            }
+
+            if (year.HasValue && year.Value > 0)
+            {
+                queryParts.Add(year.Value.ToString());
+            }
+
+            if (!string.IsNullOrWhiteSpace(journal))
+            {
+                queryParts.Add(journal.Trim());
+            }
+
+            if (queryParts.Count == 0)
+            {
+                return null;
+            }
+
+            string bibliographic = string.Join(" ", queryParts);
+            string url = $"https://api.crossref.org/works?rows=10&query.bibliographic={Uri.EscapeDataString(bibliographic)}";
+
+            using var response = await HttpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var document = await JsonDocument.ParseAsync(stream);
+
+            if (!document.RootElement.TryGetProperty("message", out JsonElement message))
+            {
+                return null;
+            }
+
+            if (!message.TryGetProperty("items", out JsonElement items) || items.ValueKind != JsonValueKind.Array)
+            {
+                return null;
+            }
+
+            Paper? fallback = null;
+            foreach (var item in items.EnumerateArray())
+            {
+                var candidate = MapMessageToPaper(item);
+                if (candidate == null || string.IsNullOrWhiteSpace(candidate.DOI))
+                {
+                    continue;
+                }
+
+                if (fallback == null)
+                {
+                    fallback = candidate;
+                }
+
+                bool titleMatch = IsLikelyTitleMatch(title, candidate.Title);
+                bool yearMatch = !year.HasValue || year.Value <= 0 || year.Value == candidate.Year;
+                bool journalMatch = IsLikelyJournalMatch(journal, candidate.Journal);
+
+                if (titleMatch && yearMatch && journalMatch)
+                {
+                    return candidate;
+                }
+            }
+
+            return fallback;
+        }
+
         public static string NormalizeDoi(string doi)
         {
             string value = doi.Trim();
@@ -199,6 +277,86 @@ namespace PaperManagementApp.Services
                 "report" => "その他",
                 _ => "その他"
             };
+        }
+
+        private static Paper? MapMessageToPaper(JsonElement message)
+        {
+            if (!message.TryGetProperty("DOI", out JsonElement doiElement))
+            {
+                return null;
+            }
+
+            string doi = doiElement.GetString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(doi))
+            {
+                return null;
+            }
+
+            return new Paper
+            {
+                DOI = NormalizeDoi(doi),
+                Title = GetFirstString(message, "title"),
+                Authors = BuildAuthors(message),
+                Year = ExtractYear(message),
+                Journal = GetFirstString(message, "container-title"),
+                Volume = GetStringOrDefault(message, "volume"),
+                Pages = GetStringOrDefault(message, "page"),
+                Abstract = GetStringOrDefault(message, "abstract"),
+                Keywords = BuildKeywords(message),
+                PaperType = MapPaperType(GetStringOrDefault(message, "type"))
+            };
+        }
+
+        private static bool IsLikelyTitleMatch(string expectedTitle, string candidateTitle)
+        {
+            if (string.IsNullOrWhiteSpace(expectedTitle))
+            {
+                return true;
+            }
+
+            string a = NormalizeText(expectedTitle);
+            string b = NormalizeText(candidateTitle);
+
+            if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b))
+            {
+                return false;
+            }
+
+            return a.Contains(b, StringComparison.OrdinalIgnoreCase) ||
+                   b.Contains(a, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsLikelyJournalMatch(string expectedJournal, string candidateJournal)
+        {
+            if (string.IsNullOrWhiteSpace(expectedJournal))
+            {
+                return true;
+            }
+
+            string a = NormalizeText(expectedJournal);
+            string b = NormalizeText(candidateJournal);
+
+            if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b))
+            {
+                return false;
+            }
+
+            return a.Contains(b, StringComparison.OrdinalIgnoreCase) ||
+                   b.Contains(a, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizeText(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            return new string(value
+                .ToLowerInvariant()
+                .Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c))
+                .ToArray())
+                .Trim();
         }
     }
 }

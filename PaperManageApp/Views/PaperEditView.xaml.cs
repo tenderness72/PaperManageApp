@@ -17,6 +17,7 @@ namespace PaperManagementApp.Views
         private PaperService _paperService;
         private RisImportService _risImportService;
         private DoiMetadataService _doiMetadataService;
+        private PdfMetadataExtractionService _pdfMetadataExtractionService;
         private Paper _currentPaper;
         private bool _isEditMode = false;
         private string _pdfFilePath = null;
@@ -35,6 +36,7 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
+            _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _currentPaper = new Paper();
             _isEditMode = false;
 
@@ -56,6 +58,7 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
+            _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _isEditMode = true;
 
             HeaderTextBlock.Text = "論文の編集";
@@ -77,6 +80,7 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
+            _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _currentPaper = importedPaper;
             _isEditMode = false;
 
@@ -144,22 +148,30 @@ namespace PaperManagementApp.Views
         private async void FetchDoiButton_Click(object sender, RoutedEventArgs e)
         {
             string doi = DoiTextBox.Text?.Trim() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(doi))
-            {
-                MessageBox.Show("DOIを入力してから取得してください。",
-                    "入力エラー", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
 
             try
             {
                 FetchDoiButton.IsEnabled = false;
                 FetchDoiButton.Content = "取得中...";
 
-                var fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(doi);
+                Paper? fetchedPaper;
+                if (!string.IsNullOrWhiteSpace(doi))
+                {
+                    fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(doi);
+                }
+                else
+                {
+                    int? inputYear = int.TryParse(YearTextBox.Text?.Trim(), out var parsedYear) ? parsedYear : null;
+                    fetchedPaper = await _doiMetadataService.SearchPaperByMetadataAsync(
+                        TitleTextBox.Text ?? string.Empty,
+                        AuthorsTextBox.Text ?? string.Empty,
+                        inputYear,
+                        JournalTextBox.Text ?? string.Empty);
+                }
+
                 if (fetchedPaper == null)
                 {
-                    MessageBox.Show("DOIからメタデータを取得できませんでした。DOI形式やネットワークを確認してください。",
+                    MessageBox.Show("DOIを特定できませんでした。DOIを直接入力するか、タイトル・著者・年・雑誌名を補って再試行してください。",
                         "取得失敗", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
@@ -171,7 +183,7 @@ namespace PaperManagementApp.Views
                 if (hasExistingInput)
                 {
                     var overwrite = MessageBox.Show(
-                        "現在入力中のタイトル・著者・雑誌名などをDOI取得結果で上書きしますか？",
+                        "現在入力中のタイトル・著者・雑誌名などを取得結果で上書きしますか？",
                         "上書き確認",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Question);
@@ -183,7 +195,7 @@ namespace PaperManagementApp.Views
                 }
 
                 ApplyFetchedMetadataToForm(fetchedPaper);
-                MessageBox.Show("DOIからメタデータを取得しました。必要に応じて内容を確認してください。",
+                MessageBox.Show("DOIとメタデータを取得しました。必要に応じて内容を確認してください。",
                     "取得完了", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -260,6 +272,74 @@ namespace PaperManagementApp.Views
                     PaperTypeComboBox.SelectedIndex = i;
                     return;
                 }
+            }
+        }
+
+        private async void AutoFetchFromPdfButton_Click(object sender, RoutedEventArgs e)
+        {
+            await TryAutoFillFromPdfAsync(showNotFoundMessage: true);
+        }
+
+        private async Task TryAutoFillFromPdfAsync(bool showNotFoundMessage, bool showSuccessMessage = true)
+        {
+            if (string.IsNullOrWhiteSpace(_pdfFilePath) || !File.Exists(_pdfFilePath))
+            {
+                MessageBox.Show("先にPDFファイルを選択してください。", "情報", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                AutoFetchFromPdfButton.IsEnabled = false;
+                AutoFetchFromPdfButton.Content = "取得中...";
+
+                Paper? fetchedPaper = null;
+                string? extractedDoi = _pdfMetadataExtractionService.TryExtractDoiFromPdf(_pdfFilePath);
+
+                if (!string.IsNullOrWhiteSpace(extractedDoi))
+                {
+                    fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(extractedDoi);
+                }
+
+                if (fetchedPaper == null)
+                {
+                    int? inputYear = int.TryParse(YearTextBox.Text?.Trim(), out var parsedYear) ? parsedYear : null;
+                    string titleHint = !string.IsNullOrWhiteSpace(TitleTextBox.Text)
+                        ? TitleTextBox.Text
+                        : _pdfMetadataExtractionService.TryExtractTitleFromFileName(_pdfFilePath) ?? string.Empty;
+
+                    fetchedPaper = await _doiMetadataService.SearchPaperByMetadataAsync(
+                        titleHint,
+                        AuthorsTextBox.Text ?? string.Empty,
+                        inputYear,
+                        JournalTextBox.Text ?? string.Empty);
+                }
+
+                if (fetchedPaper == null)
+                {
+                    if (showNotFoundMessage)
+                    {
+                        MessageBox.Show("PDFから DOI/メタデータを特定できませんでした。DOIの手入力または項目補足後に再実行してください。",
+                            "取得失敗", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                    return;
+                }
+
+                ApplyFetchedMetadataToForm(fetchedPaper);
+                if (showSuccessMessage)
+                {
+                    MessageBox.Show("PDFから DOI とメタデータを取得しました。", "取得完了", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"PDF自動取得中にエラーが発生しました: {ex.Message}",
+                    "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                AutoFetchFromPdfButton.IsEnabled = true;
+                AutoFetchFromPdfButton.Content = "PDFから自動取得";
             }
         }
 
@@ -349,7 +429,7 @@ namespace PaperManagementApp.Views
         }
 
         // PDFファイル参照ボタンクリック
-        private void BrowsePdfButton_Click(object sender, RoutedEventArgs e)
+        private async void BrowsePdfButton_Click(object sender, RoutedEventArgs e)
         {
             var openFileDialog = new OpenFileDialog
             {
@@ -361,6 +441,7 @@ namespace PaperManagementApp.Views
             {
                 _pdfFilePath = openFileDialog.FileName;
                 PdfPathTextBox.Text = _pdfFilePath;
+                await TryAutoFillFromPdfAsync(showNotFoundMessage: false, showSuccessMessage: false);
             }
         }
 
