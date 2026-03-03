@@ -2,6 +2,8 @@ using PaperManagementApp.Models;
 using PaperManagementApp.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -145,6 +147,45 @@ namespace PaperManagementApp.Views
                 MessageBox.Show($"検索/フィルター適用中にエラーが発生しました: {ex.Message}",
                     "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        // PDFドラッグ＆ドロップ
+        private void PapersDataGrid_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var files = e.Data.GetData(DataFormats.FileDrop) as string[];
+                if (files != null && files.Any(f => f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)))
+                {
+                    e.Effects = DragDropEffects.Copy;
+                    e.Handled = true;
+                    return;
+                }
+            }
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+        }
+
+        private void PapersDataGrid_Drop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+            var files = e.Data.GetData(DataFormats.FileDrop) as string[];
+            if (files == null) return;
+
+            var pdfFiles = files
+                .Where(f => f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) && File.Exists(f))
+                .ToArray();
+
+            if (pdfFiles.Length == 0) return;
+
+            if (pdfFiles.Length > 1)
+            {
+                MessageBox.Show($"{pdfFiles.Length} 件のPDFがドロップされました。最初のファイルのみ処理します。",
+                    "情報", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            NavigationService.Navigate(new PaperEditView(pdfFiles[0]));
         }
 
         // 新規追加ボタンクリック

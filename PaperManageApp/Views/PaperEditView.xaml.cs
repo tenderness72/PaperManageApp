@@ -75,6 +75,33 @@ namespace PaperManagementApp.Views
             Loaded += async (s, e) => await LoadPaperAsync(paperId);
         }
 
+        // コンストラクタ（PDFドロップモード）
+        public PaperEditView(string pdfFilePath)
+        {
+            InitializeComponent();
+
+            _paperService = new PaperService();
+            _risImportService = new RisImportService();
+            _doiMetadataService = new DoiMetadataService();
+            _jStageMetadataService = new JStageMetadataService();
+            _pdfMetadataExtractionService = new PdfMetadataExtractionService();
+            _currentPaper = new Paper();
+            _isEditMode = false;
+            _pdfFilePath = pdfFilePath;
+
+            HeaderTextBlock.Text = "新規論文の追加";
+            PaperTypeComboBox.SelectedIndex = 0;
+
+            this.DataContext = this;
+            ImportRisButton.Visibility = Visibility.Visible;
+
+            Loaded += async (s, e) =>
+            {
+                PdfPathTextBox.Text = _pdfFilePath;
+                await TryAutoFillFromPdfAsync(showNotFoundMessage: false, showSuccessMessage: false);
+            };
+        }
+
         // コンストラクタ（RISインポートモード）
         public PaperEditView(Paper importedPaper)
         {

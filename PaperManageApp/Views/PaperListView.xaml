@@ -36,7 +36,7 @@
         </Grid>
 
         <!-- 論文リスト -->
-        <DataGrid x:Name="PapersDataGrid" 
+        <DataGrid x:Name="PapersDataGrid"
                   Grid.Row="1"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
@@ -48,7 +48,10 @@
                   BorderBrush="#e0e0e0"
                   RowHeaderWidth="0"
                   Background="White"
-                  AlternatingRowBackground="#f9f9f9">
+                  AlternatingRowBackground="#f9f9f9"
+                  AllowDrop="True"
+                  DragOver="PapersDataGrid_DragOver"
+                  Drop="PapersDataGrid_Drop">
 
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="30">
