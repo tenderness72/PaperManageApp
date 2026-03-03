@@ -17,6 +17,7 @@ namespace PaperManagementApp.Views
         private PaperService _paperService;
         private RisImportService _risImportService;
         private DoiMetadataService _doiMetadataService;
+        private JStageMetadataService _jStageMetadataService;
         private PdfMetadataExtractionService _pdfMetadataExtractionService;
         private Paper _currentPaper;
         private bool _isEditMode = false;
@@ -36,6 +37,7 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
+            _jStageMetadataService = new JStageMetadataService();
             _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _currentPaper = new Paper();
             _isEditMode = false;
@@ -58,6 +60,7 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
+            _jStageMetadataService = new JStageMetadataService();
             _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _isEditMode = true;
 
@@ -80,6 +83,7 @@ namespace PaperManagementApp.Views
             _paperService = new PaperService();
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
+            _jStageMetadataService = new JStageMetadataService();
             _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _currentPaper = importedPaper;
             _isEditMode = false;
@@ -144,7 +148,7 @@ namespace PaperManagementApp.Views
             }
         }
 
-        // 論文選択ダイアログを表示
+        // DOI取得ボタンクリック
         private async void FetchDoiButton_Click(object sender, RoutedEventArgs e)
         {
             string doi = DoiTextBox.Text?.Trim() ?? string.Empty;
@@ -154,19 +158,34 @@ namespace PaperManagementApp.Views
                 FetchDoiButton.IsEnabled = false;
                 FetchDoiButton.Content = "取得中...";
 
+                int? inputYear = int.TryParse(YearTextBox.Text?.Trim(), out var parsedYear) ? parsedYear : null;
+                string titleText = TitleTextBox.Text ?? string.Empty;
+                string authorsText = AuthorsTextBox.Text ?? string.Empty;
+                string journalText = JournalTextBox.Text ?? string.Empty;
+
                 Paper? fetchedPaper;
                 if (!string.IsNullOrWhiteSpace(doi))
                 {
+                    // CrossRef でDOI直接取得
                     fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(doi);
+
+                    // CrossRef にない場合は J-STAGE でDOI直接取得
+                    if (fetchedPaper == null)
+                    {
+                        fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(doi);
+                    }
                 }
                 else
                 {
-                    int? inputYear = int.TryParse(YearTextBox.Text?.Trim(), out var parsedYear) ? parsedYear : null;
                     fetchedPaper = await _doiMetadataService.SearchPaperByMetadataAsync(
-                        TitleTextBox.Text ?? string.Empty,
-                        AuthorsTextBox.Text ?? string.Empty,
-                        inputYear,
-                        JournalTextBox.Text ?? string.Empty);
+                        titleText, authorsText, inputYear, journalText);
+                }
+
+                // DOI なし・書誌情報検索も失敗した場合は J-STAGE で書誌情報検索
+                if (fetchedPaper == null)
+                {
+                    fetchedPaper = await _jStageMetadataService.SearchAsync(
+                        titleText, authorsText, inputYear, journalText);
                 }
 
                 if (fetchedPaper == null)
@@ -178,7 +197,9 @@ namespace PaperManagementApp.Views
 
                 bool hasExistingInput = !string.IsNullOrWhiteSpace(TitleTextBox.Text) ||
                                         !string.IsNullOrWhiteSpace(AuthorsTextBox.Text) ||
-                                        !string.IsNullOrWhiteSpace(JournalTextBox.Text);
+                                        !string.IsNullOrWhiteSpace(JournalTextBox.Text) ||
+                                        !string.IsNullOrWhiteSpace(AbstractTextBox.Text) ||
+                                        !string.IsNullOrWhiteSpace(KeywordsTextBox.Text);
 
                 if (hasExistingInput)
                 {
@@ -299,6 +320,12 @@ namespace PaperManagementApp.Views
                 if (!string.IsNullOrWhiteSpace(extractedDoi))
                 {
                     fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(extractedDoi);
+
+                    // CrossRef にない場合は J-STAGE でDOI直接取得
+                    if (fetchedPaper == null)
+                    {
+                        fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(extractedDoi);
+                    }
                 }
 
                 if (fetchedPaper == null)
@@ -307,12 +334,18 @@ namespace PaperManagementApp.Views
                     string titleHint = !string.IsNullOrWhiteSpace(TitleTextBox.Text)
                         ? TitleTextBox.Text
                         : _pdfMetadataExtractionService.TryExtractTitleFromFileName(_pdfFilePath) ?? string.Empty;
+                    string authorsHint = AuthorsTextBox.Text ?? string.Empty;
+                    string journalHint = JournalTextBox.Text ?? string.Empty;
 
                     fetchedPaper = await _doiMetadataService.SearchPaperByMetadataAsync(
-                        titleHint,
-                        AuthorsTextBox.Text ?? string.Empty,
-                        inputYear,
-                        JournalTextBox.Text ?? string.Empty);
+                        titleHint, authorsHint, inputYear, journalHint);
+
+                    // CrossRef で見つからない場合は J-STAGE にフォールバック
+                    if (fetchedPaper == null)
+                    {
+                        fetchedPaper = await _jStageMetadataService.SearchAsync(
+                            titleHint, authorsHint, inputYear, journalHint);
+                    }
                 }
 
                 if (fetchedPaper == null)

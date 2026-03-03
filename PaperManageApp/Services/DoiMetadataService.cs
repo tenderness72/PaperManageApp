@@ -20,6 +20,8 @@ namespace PaperManagementApp.Services
                 Timeout = TimeSpan.FromSeconds(20)
             };
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Acedia", "1.0"));
+            // CrossRef のポライトプール利用のために mailto を付与
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("(mailto:acedia-app@example.com)"));
             return client;
         }
 
@@ -115,18 +117,12 @@ namespace PaperManagementApp.Services
                 return null;
             }
 
-            Paper? fallback = null;
             foreach (var item in items.EnumerateArray())
             {
                 var candidate = MapMessageToPaper(item);
                 if (candidate == null || string.IsNullOrWhiteSpace(candidate.DOI))
                 {
                     continue;
-                }
-
-                if (fallback == null)
-                {
-                    fallback = candidate;
                 }
 
                 bool titleMatch = IsLikelyTitleMatch(title, candidate.Title);
@@ -139,7 +135,7 @@ namespace PaperManagementApp.Services
                 }
             }
 
-            return fallback;
+            return null;
         }
 
         public static string NormalizeDoi(string doi)
@@ -147,6 +143,8 @@ namespace PaperManagementApp.Services
             string value = doi.Trim();
             value = value.Replace("https://doi.org/", "", StringComparison.OrdinalIgnoreCase);
             value = value.Replace("http://doi.org/", "", StringComparison.OrdinalIgnoreCase);
+            value = value.Replace("https://dx.doi.org/", "", StringComparison.OrdinalIgnoreCase);
+            value = value.Replace("http://dx.doi.org/", "", StringComparison.OrdinalIgnoreCase);
             value = value.Replace("doi:", "", StringComparison.OrdinalIgnoreCase);
             return value.Trim();
         }
@@ -219,7 +217,7 @@ namespace PaperManagementApp.Services
             year = TryExtractYear(message, "issued");
             if (year > 0) return year;
 
-            return DateTime.Now.Year;
+            return 0;
         }
 
         private static int TryExtractYear(JsonElement message, string propertyName)
@@ -271,6 +269,7 @@ namespace PaperManagementApp.Services
             {
                 "journal-article" => "研究論文",
                 "proceedings-article" => "研究論文",
+                "review-article" => "レビュー",
                 "book-chapter" => "その他",
                 "book" => "その他",
                 "reference-entry" => "その他",
