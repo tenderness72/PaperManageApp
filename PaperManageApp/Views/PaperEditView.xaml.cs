@@ -227,7 +227,7 @@ namespace PaperManagementApp.Views
             finally
             {
                 FetchDoiButton.IsEnabled = true;
-                FetchDoiButton.Content = "DOI取得";
+                FetchDoiButton.Content = "DOIから取得";
             }
         }
 
@@ -331,9 +331,16 @@ namespace PaperManagementApp.Views
                 if (fetchedPaper == null)
                 {
                     int? inputYear = int.TryParse(YearTextBox.Text?.Trim(), out var parsedYear) ? parsedYear : null;
+
+                    // タイトルのヒントを優先順位順に決定
+                    // 1. フォームに既入力のタイトル
+                    // 2. PDFの本文から抽出したタイトル（新規追加）
+                    // 3. ファイル名から推測したタイトル
                     string titleHint = !string.IsNullOrWhiteSpace(TitleTextBox.Text)
                         ? TitleTextBox.Text
-                        : _pdfMetadataExtractionService.TryExtractTitleFromFileName(_pdfFilePath) ?? string.Empty;
+                        : _pdfMetadataExtractionService.TryExtractTitleFromPdf(_pdfFilePath)
+                          ?? _pdfMetadataExtractionService.TryExtractTitleFromFileName(_pdfFilePath)
+                          ?? string.Empty;
                     string authorsHint = AuthorsTextBox.Text ?? string.Empty;
                     string journalHint = JournalTextBox.Text ?? string.Empty;
 

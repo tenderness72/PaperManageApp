@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
 
 namespace PaperManagementApp.Services
 {
@@ -35,6 +38,70 @@ namespace PaperManagementApp.Services
 
                 string doi = CleanupDoi(match.Value);
                 return string.IsNullOrWhiteSpace(doi) ? null : doi;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public string? TryExtractTitleFromPdf(string pdfPath)
+        {
+            if (string.IsNullOrWhiteSpace(pdfPath) || !File.Exists(pdfPath))
+            {
+                return null;
+            }
+
+            try
+            {
+                using var pdf = PdfDocument.Open(pdfPath);
+                var firstPage = pdf.GetPage(1);
+
+                // 1ページ目の全ワードをフォントサイズ付きで取得
+                var words = firstPage.GetWords().ToList();
+                if (words.Count == 0)
+                {
+                    return null;
+                }
+
+                // 最大フォントサイズを取得（タイトルは通常最大フォント）
+                double maxFontSize = words.Max(w => w.Letters.Max(l => l.FontSize));
+
+                // 最大フォントサイズのワードを上から順に結合
+                // ただしフォントサイズが閾値（最大の70%）以上のものに限定
+                double threshold = maxFontSize * 0.7;
+
+                // Y座標で降順ソート（PDF座標は下から上なので大きいほど上）
+                var titleWords = words
+                    .Where(w => w.Letters.Any() && w.Letters.Max(l => l.FontSize) >= threshold)
+                    .OrderByDescending(w => w.BoundingBox.Bottom)
+                    .ThenBy(w => w.BoundingBox.Left)
+                    .ToList();
+
+                if (titleWords.Count == 0)
+                {
+                    return null;
+                }
+
+                // タイトル行を構成（Abstract/Introduction 等が出てきたら打ち切り）
+                var stopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "abstract", "introduction", "keywords", "keyword", "summary",
+                    "抄録", "要旨", "はじめに", "序論"
+                };
+
+                var titleParts = new List<string>();
+                foreach (var word in titleWords)
+                {
+                    if (stopWords.Contains(word.Text))
+                    {
+                        break;
+                    }
+                    titleParts.Add(word.Text);
+                }
+
+                string title = string.Join(" ", titleParts).Trim();
+                return string.IsNullOrWhiteSpace(title) ? null : title;
             }
             catch
             {

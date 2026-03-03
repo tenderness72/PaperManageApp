@@ -19,6 +19,11 @@ namespace PaperManagementApp.Services
             @"^10\.\d+/([a-zA-Z][a-zA-Z0-9]*)\.(\d+)\.(\d+)[_-](\d+)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        // J-STAGE 記事 URL: /article/{cdjournal}/{vol}/{no}/{segment}/_article
+        private static readonly Regex JStageArticleUrlRegex = new Regex(
+            @"jstage\.jst\.go\.jp/article/([^/]+)/(\d+)/(\d+)/([^/]+)/_article",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         private static readonly XNamespace Atom = "http://www.w3.org/2005/Atom";
         private static readonly XNamespace Prism = "http://prismstandard.org/namespaces/basic/2.0/";
         private static readonly XNamespace Dc = "http://purl.org/dc/elements/1.1/";
@@ -37,41 +42,102 @@ namespace PaperManagementApp.Services
         {
             string normalizedDoi = DoiMetadataService.NormalizeDoi(doi);
             var match = JStageDoiRegex.Match(normalizedDoi);
-            if (!match.Success)
+
+            if (match.Success)
             {
-                return null;
+                string cdjournal = match.Groups[1].Value;
+                string vol = match.Groups[2].Value;
+                string no = match.Groups[3].Value;
+                string page = match.Groups[4].Value;
+
+                string url = $"https://api.jstage.jst.go.jp/searchapi/do?service=3" +
+                             $"&cdjournal={Uri.EscapeDataString(cdjournal)}" +
+                             $"&vol={vol}&no={no}&result=100";
+
+                using var response = await HttpClient.GetAsync(url);
+                if (response.IsSuccessStatusCode)
+                {
+                    string xml = await response.Content.ReadAsStringAsync();
+                    XDocument doc;
+                    try { doc = XDocument.Parse(xml); }
+                    catch { return null; }
+
+                    foreach (var entry in doc.Descendants(Atom + "entry"))
+                    {
+                        string startPage = entry.Element(Prism + "startingPage")?.Value ?? string.Empty;
+                        if (startPage == page)
+                        {
+                            return MapEntryToPaper(entry);
+                        }
+                    }
+                }
             }
 
-            string cdjournal = match.Groups[1].Value;
-            string vol = match.Groups[2].Value;
-            string no = match.Groups[3].Value;
-            string page = match.Groups[4].Value;
+            // 正規表現でパースできない形式（例: journal.vol-article）は
+            // J-STAGE API の doi パラメータで直接検索するフォールバック
+            return await FetchByDoiDirectAsync(normalizedDoi);
+        }
 
-            string url = $"https://api.jstage.jst.go.jp/searchapi/do?service=3" +
-                         $"&cdjournal={Uri.EscapeDataString(cdjournal)}" +
-                         $"&vol={vol}&no={no}&result=100";
-
-            using var response = await HttpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
-            string xml = await response.Content.ReadAsStringAsync();
-            XDocument doc;
+        private async Task<Paper?> FetchByDoiDirectAsync(string normalizedDoi)
+        {
+            // J-STAGE API は doi= パラメータ非対応のため、DOI リダイレクト先 URL を解析して
+            // cdjournal/vol/no を取得し、そこから記事を特定する
+            string doiUrl = $"https://doi.org/{normalizedDoi}";
+            string? jstageUrl;
             try
             {
-                doc = XDocument.Parse(xml);
+                using var response = await HttpClient.GetAsync(doiUrl, HttpCompletionOption.ResponseHeadersRead);
+                // auto-redirect 後の最終 URI を取得
+                jstageUrl = response.RequestMessage?.RequestUri?.ToString();
             }
             catch
             {
                 return null;
             }
 
+            if (string.IsNullOrWhiteSpace(jstageUrl))
+            {
+                return null;
+            }
+
+            var urlMatch = JStageArticleUrlRegex.Match(jstageUrl);
+            if (!urlMatch.Success)
+            {
+                return null;
+            }
+
+            string cdjournal = urlMatch.Groups[1].Value;
+            string vol = urlMatch.Groups[2].Value;
+            string no = urlMatch.Groups[3].Value;
+            string articleSegment = urlMatch.Groups[4].Value; // 例: "51_23-029"
+
+            string apiUrl = $"https://api.jstage.jst.go.jp/searchapi/do?service=3" +
+                            $"&cdjournal={Uri.EscapeDataString(cdjournal)}" +
+                            $"&vol={vol}&no={no}&result=100";
+
+            using var apiResponse = await HttpClient.GetAsync(apiUrl);
+            if (!apiResponse.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            string xml = await apiResponse.Content.ReadAsStringAsync();
+            XDocument doc;
+            try { doc = XDocument.Parse(xml); }
+            catch { return null; }
+
             foreach (var entry in doc.Descendants(Atom + "entry"))
             {
-                string startPage = entry.Element(Prism + "startingPage")?.Value ?? string.Empty;
-                if (startPage == page)
+                // リンク URL に記事セグメントが含まれる記事を特定
+                string entryLink = entry.Element(Atom + "link")?.Attribute("href")?.Value ?? string.Empty;
+                if (entryLink.Contains(articleSegment, StringComparison.OrdinalIgnoreCase))
+                {
+                    return MapEntryToPaper(entry);
+                }
+
+                // DOI 一致でも照合
+                string entryDoi = entry.Element(Prism + "doi")?.Value ?? string.Empty;
+                if (string.Equals(entryDoi, normalizedDoi, StringComparison.OrdinalIgnoreCase))
                 {
                     return MapEntryToPaper(entry);
                 }

@@ -98,7 +98,7 @@
                                 <TextBox x:Name="DoiTextBox" Padding="5" Margin="0,0,5,0"/>
                                 <Button Grid.Column="1"
                                         x:Name="FetchDoiButton"
-                                        Content="DOI取得"
+                                        Content="DOIから取得"
                                         Click="FetchDoiButton_Click"
                                         Padding="10,5"/>
                             </Grid>
