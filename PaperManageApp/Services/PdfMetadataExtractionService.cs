@@ -11,28 +11,58 @@ namespace PaperManagementApp.Services
 {
     public class PdfMetadataExtractionService
     {
-        // DOI pattern based on Crossref recommendation
+        // 裸の DOI パターン (Crossref 推奨)
         private static readonly Regex DoiRegex = new Regex(
             @"10\.\d{4,9}/[-._;()/:A-Za-z0-9]+",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        // doi.org URL パターン（ハイパーリンク・XMP に現れる、偽陽性ほぼゼロ）
+        private static readonly Regex DoiUrlRegex = new Regex(
+            @"https?://(?:dx\.)?doi\.org/(10\.\d{4,9}/[-._;()/:A-Za-z0-9]+)",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        // "DOI:" プレフィックス付き表記（本文中の明示的表記）
+        private static readonly Regex DoiLabelRegex = new Regex(
+            @"(?:doi|DOI)[:\s：]+\s*(10\.\d{4,9}/[-._;()/:A-Za-z0-9]+)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public string? TryExtractDoiFromPdf(string pdfPath)
         {
             if (string.IsNullOrWhiteSpace(pdfPath) || !File.Exists(pdfPath))
-            {
                 return null;
-            }
 
-            // 優先: PdfPig でページテキストを正しく展開してから DOI を探す
-            // (圧縮コンテンツストリーム内の DOI を取得できる)
-            string? doi = TryExtractDoiFromPdfText(pdfPath);
+            // ① 生バイトで doi.org URL を探す（非圧縮のハイパーリンク注釈・XMP に有効、偽陽性ほぼゼロ）
+            string? doi = TryExtractDoiUrlFromRawBytes(pdfPath);
             if (!string.IsNullOrWhiteSpace(doi)) return doi;
 
-            // フォールバック: 生バイトスキャン (XMP・Info ディクショナリなど非圧縮領域)
+            // ② PdfPig ワード抽出で "DOI:" プレフィックス後を探す（本文中の明示的表記）
+            doi = TryExtractDoiWithLabelFromWords(pdfPath);
+            if (!string.IsNullOrWhiteSpace(doi)) return doi;
+
+            // ③ PdfPig ワード抽出で裸の DOI パターンを探す（文字並び替え問題を回避）
+            doi = TryExtractDoiFromWords(pdfPath);
+            if (!string.IsNullOrWhiteSpace(doi)) return doi;
+
+            // ④ 生バイトで裸の DOI パターン（最終手段、偽陽性リスクあり）
             return TryExtractDoiFromRawBytes(pdfPath);
         }
 
-        private string? TryExtractDoiFromPdfText(string pdfPath)
+        // ① 生バイトから doi.org URL を抽出（非圧縮領域対象）
+        private string? TryExtractDoiUrlFromRawBytes(string pdfPath)
+        {
+            try
+            {
+                byte[] bytes = File.ReadAllBytes(pdfPath);
+                string rawText = Encoding.Latin1.GetString(bytes);
+                var match = DoiUrlRegex.Match(rawText);
+                if (!match.Success) return null;
+                return CleanupDoi(match.Groups[1].Value);
+            }
+            catch { return null; }
+        }
+
+        // ② PdfPig ワードから "DOI:" プレフィックス付き表記を抽出
+        private string? TryExtractDoiWithLabelFromWords(string pdfPath)
         {
             try
             {
@@ -41,31 +71,52 @@ namespace PaperManagementApp.Services
 
                 for (int pageNum = 1; pageNum <= pageLimit; pageNum++)
                 {
-                    var page = pdf.GetPage(pageNum);
-                    // Letters を位置順に並べてテキストを復元
-                    string pageText = string.Concat(
-                        page.Letters
-                            .OrderBy(l => -l.Location.Y)
-                            .ThenBy(l => l.Location.X)
-                            .Select(l => l.Value));
+                    string wordText = BuildWordText(pdf.GetPage(pageNum));
+                    var match = DoiLabelRegex.Match(wordText);
+                    if (match.Success)
+                    {
+                        string doi = CleanupDoi(match.Groups[1].Value);
+                        if (!string.IsNullOrWhiteSpace(doi)) return doi;
+                    }
+                }
+                return null;
+            }
+            catch { return null; }
+        }
 
-                    string normalized = Regex.Replace(pageText, @"\s+", " ");
-                    var match = DoiRegex.Match(normalized);
+        // ③ PdfPig ワードから裸の DOI パターンを抽出
+        private string? TryExtractDoiFromWords(string pdfPath)
+        {
+            try
+            {
+                using var pdf = PdfDocument.Open(pdfPath);
+                int pageLimit = Math.Min(pdf.NumberOfPages, 3);
+
+                for (int pageNum = 1; pageNum <= pageLimit; pageNum++)
+                {
+                    string wordText = BuildWordText(pdf.GetPage(pageNum));
+                    var match = DoiRegex.Match(wordText);
                     if (match.Success)
                     {
                         string doi = CleanupDoi(match.Value);
                         if (!string.IsNullOrWhiteSpace(doi)) return doi;
                     }
                 }
-
                 return null;
             }
-            catch
-            {
-                return null;
-            }
+            catch { return null; }
         }
 
+        // ページのワードをY/X順で結合してテキストを生成
+        private static string BuildWordText(Page page)
+        {
+            var words = page.GetWords()
+                .OrderByDescending(w => w.BoundingBox.Bottom)
+                .ThenBy(w => w.BoundingBox.Left);
+            return string.Join(" ", words.Select(w => w.Text));
+        }
+
+        // ④ 生バイトで裸の DOI パターン（フォールバック）
         private string? TryExtractDoiFromRawBytes(string pdfPath)
         {
             try
@@ -80,10 +131,7 @@ namespace PaperManagementApp.Services
                 string doi = CleanupDoi(match.Value);
                 return string.IsNullOrWhiteSpace(doi) ? null : doi;
             }
-            catch
-            {
-                return null;
-            }
+            catch { return null; }
         }
 
         public string? TryExtractTitleFromPdf(string pdfPath)
