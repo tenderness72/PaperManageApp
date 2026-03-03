@@ -358,27 +358,35 @@ namespace PaperManagementApp.Views
                 if (fetchedPaper == null)
                 {
                     int? inputYear = int.TryParse(YearTextBox.Text?.Trim(), out var parsedYear) ? parsedYear : null;
-
-                    // タイトルのヒントを優先順位順に決定
-                    // 1. フォームに既入力のタイトル
-                    // 2. PDFの本文から抽出したタイトル（新規追加）
-                    // 3. ファイル名から推測したタイトル
-                    string titleHint = !string.IsNullOrWhiteSpace(TitleTextBox.Text)
-                        ? TitleTextBox.Text
-                        : _pdfMetadataExtractionService.TryExtractTitleFromPdf(_pdfFilePath)
-                          ?? _pdfMetadataExtractionService.TryExtractTitleFromFileName(_pdfFilePath)
-                          ?? string.Empty;
                     string authorsHint = AuthorsTextBox.Text ?? string.Empty;
                     string journalHint = JournalTextBox.Text ?? string.Empty;
 
-                    fetchedPaper = await _doiMetadataService.SearchPaperByMetadataAsync(
-                        titleHint, authorsHint, inputYear, journalHint);
+                    // タイトルヒント候補を優先順に列挙して順次検索する
+                    // 1. フォームに既入力のタイトル
+                    // 2. PDFの本文から抽出したタイトル（フォントサイズ推定）
+                    // 3. ファイル名から推測したタイトル
+                    var titleCandidates = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(TitleTextBox.Text))
+                        titleCandidates.Add(TitleTextBox.Text);
+                    string? pdfTitle = _pdfMetadataExtractionService.TryExtractTitleFromPdf(_pdfFilePath);
+                    if (!string.IsNullOrWhiteSpace(pdfTitle))
+                        titleCandidates.Add(pdfTitle);
+                    string? fileTitle = _pdfMetadataExtractionService.TryExtractTitleFromFileName(_pdfFilePath);
+                    if (!string.IsNullOrWhiteSpace(fileTitle))
+                        titleCandidates.Add(fileTitle);
 
-                    // CrossRef で見つからない場合は J-STAGE にフォールバック
-                    if (fetchedPaper == null)
+                    foreach (string titleHint in titleCandidates)
                     {
-                        fetchedPaper = await _jStageMetadataService.SearchAsync(
+                        fetchedPaper = await _doiMetadataService.SearchPaperByMetadataAsync(
                             titleHint, authorsHint, inputYear, journalHint);
+
+                        if (fetchedPaper == null)
+                        {
+                            fetchedPaper = await _jStageMetadataService.SearchAsync(
+                                titleHint, authorsHint, inputYear, journalHint);
+                        }
+
+                        if (fetchedPaper != null) break;
                     }
                 }
 

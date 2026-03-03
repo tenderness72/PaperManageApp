@@ -217,7 +217,9 @@ namespace PaperManagementApp.Services
                 .Replace('-', ' ')
                 .Replace('.', ' ');
 
-            string[] noisyTokens = { "preprint", "accepted", "final", "version", "v1", "v2", "pdf" };
+            string[] noisyTokens = { "preprint", "accepted", "final", "version", "v1", "v2", "pdf",
+                                     "unlocked", "decrypted", "ocr", "scan", "copy", "draft",
+                                     "submitted", "revised", "published", "postprint" };
             var tokens = title
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                 .Where(t => !noisyTokens.Contains(t, StringComparer.OrdinalIgnoreCase))
