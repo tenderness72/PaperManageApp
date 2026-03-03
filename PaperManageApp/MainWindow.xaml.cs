@@ -106,6 +106,13 @@ namespace PaperManagementApp
             MainFrame.Navigate(new WordExportView());
         }
 
+        // 設定ボタンクリック
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Views.SettingsDialog { Owner = this };
+            dialog.ShowDialog();
+        }
+
         // 検索テキスト変更
         private async void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {

@@ -54,8 +54,12 @@
                         Click="AddPaperButton_Click" 
                         Style="{StaticResource MenuButtonStyle}"/>
 
-                <Button Content="Word連携" 
-                        Click="WordIntegrationButton_Click" 
+                <Button Content="Word連携"
+                        Click="WordIntegrationButton_Click"
+                        Style="{StaticResource MenuButtonStyle}"/>
+
+                <Button Content="設定"
+                        Click="SettingsButton_Click"
                         Style="{StaticResource MenuButtonStyle}"/>
 
                 <Separator Margin="0,20" Background="#34495e"/>
