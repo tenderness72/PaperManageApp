@@ -23,18 +23,59 @@ namespace PaperManagementApp.Services
                 return null;
             }
 
+            // 優先: PdfPig でページテキストを正しく展開してから DOI を探す
+            // (圧縮コンテンツストリーム内の DOI を取得できる)
+            string? doi = TryExtractDoiFromPdfText(pdfPath);
+            if (!string.IsNullOrWhiteSpace(doi)) return doi;
+
+            // フォールバック: 生バイトスキャン (XMP・Info ディクショナリなど非圧縮領域)
+            return TryExtractDoiFromRawBytes(pdfPath);
+        }
+
+        private string? TryExtractDoiFromPdfText(string pdfPath)
+        {
             try
             {
-                // Best-effort extraction: scan PDF bytes as Latin1 text.
+                using var pdf = PdfDocument.Open(pdfPath);
+                int pageLimit = Math.Min(pdf.NumberOfPages, 3);
+
+                for (int pageNum = 1; pageNum <= pageLimit; pageNum++)
+                {
+                    var page = pdf.GetPage(pageNum);
+                    // Letters を位置順に並べてテキストを復元
+                    string pageText = string.Concat(
+                        page.Letters
+                            .OrderBy(l => -l.Location.Y)
+                            .ThenBy(l => l.Location.X)
+                            .Select(l => l.Value));
+
+                    string normalized = Regex.Replace(pageText, @"\s+", " ");
+                    var match = DoiRegex.Match(normalized);
+                    if (match.Success)
+                    {
+                        string doi = CleanupDoi(match.Value);
+                        if (!string.IsNullOrWhiteSpace(doi)) return doi;
+                    }
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private string? TryExtractDoiFromRawBytes(string pdfPath)
+        {
+            try
+            {
                 byte[] bytes = File.ReadAllBytes(pdfPath);
                 string rawText = Encoding.Latin1.GetString(bytes);
                 string normalized = Regex.Replace(rawText, @"\s+", " ");
 
                 var match = DoiRegex.Match(normalized);
-                if (!match.Success)
-                {
-                    return null;
-                }
+                if (!match.Success) return null;
 
                 string doi = CleanupDoi(match.Value);
                 return string.IsNullOrWhiteSpace(doi) ? null : doi;
