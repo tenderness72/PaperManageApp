@@ -35,7 +35,8 @@ namespace PaperManagementApp.Services
 
         public async Task<Paper?> FetchPaperByDoiAsync(string doi)
         {
-            var match = JStageDoiRegex.Match(doi.Trim());
+            string normalizedDoi = DoiMetadataService.NormalizeDoi(doi);
+            var match = JStageDoiRegex.Match(normalizedDoi);
             if (!match.Success)
             {
                 return null;
@@ -138,7 +139,12 @@ namespace PaperManagementApp.Services
 
         private static Paper? MapEntryToPaper(XElement entry)
         {
-            string title = entry.Element(Atom + "title")?.Value ?? string.Empty;
+            // デフォルト名前空間が Atom のため、J-STAGE 独自要素も Atom + で取得する
+            string title = entry.Element(Atom + "article_title")?.Element(Atom + "ja")?.Value
+                        ?? entry.Element(Atom + "article_title")?.Element(Atom + "en")?.Value
+                        ?? entry.Element(Atom + "title")?.Value
+                        ?? string.Empty;
+
             if (string.IsNullOrWhiteSpace(title))
             {
                 return null;
@@ -146,8 +152,10 @@ namespace PaperManagementApp.Services
 
             string doi = entry.Element(Prism + "doi")?.Value ?? string.Empty;
             string authors = BuildAuthors(entry);
-            int year = ParseYear(entry.Element(Prism + "publicationDate")?.Value ?? string.Empty);
-            string journal = entry.Element(Prism + "publicationName")?.Value ?? string.Empty;
+            int year = ParseYear(entry.Element(Atom + "pubyear")?.Value ?? string.Empty);
+            string journal = entry.Element(Atom + "material_title")?.Element(Atom + "ja")?.Value
+                          ?? entry.Element(Atom + "material_title")?.Element(Atom + "en")?.Value
+                          ?? string.Empty;
             string volume = entry.Element(Prism + "volume")?.Value ?? string.Empty;
             string startPage = entry.Element(Prism + "startingPage")?.Value ?? string.Empty;
             string endPage = entry.Element(Prism + "endingPage")?.Value ?? string.Empty;
@@ -169,21 +177,33 @@ namespace PaperManagementApp.Services
 
         private static string BuildAuthors(XElement entry)
         {
-            var names = entry.Elements(Atom + "author")
-                .Select(a => a.Element(Atom + "name")?.Value ?? string.Empty)
-                .Where(n => !string.IsNullOrWhiteSpace(n));
-
-            return string.Join("|", names);
-        }
-
-        private static int ParseYear(string publicationDate)
-        {
-            if (string.IsNullOrWhiteSpace(publicationDate) || publicationDate.Length < 4)
+            var authorElement = entry.Element(Atom + "author");
+            if (authorElement == null)
             {
-                return 0;
+                return string.Empty;
             }
 
-            return int.TryParse(publicationDate[..4], out int year) ? year : 0;
+            // 日本語名を優先、なければ英語名
+            var jaNames = authorElement.Element(Atom + "ja")?.Elements(Atom + "name")
+                .Select(n => n.Value)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .ToList();
+
+            if (jaNames != null && jaNames.Count > 0)
+            {
+                return string.Join("|", jaNames);
+            }
+
+            var enNames = authorElement.Element(Atom + "en")?.Elements(Atom + "name")
+                .Select(n => n.Value)
+                .Where(n => !string.IsNullOrWhiteSpace(n));
+
+            return enNames != null ? string.Join("|", enNames) : string.Empty;
+        }
+
+        private static int ParseYear(string pubyear)
+        {
+            return int.TryParse(pubyear.Trim(), out int year) ? year : 0;
         }
 
         private static string BuildPages(string startPage, string endPage)

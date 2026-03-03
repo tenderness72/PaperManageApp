@@ -22,7 +22,7 @@
       <Lcid>0</Lcid>
       <Isolated>false</Isolated>
       <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
+    </COMReference> 
     <COMReference Include="Microsoft.Office.Core">
       <WrapperTool>tlbimp</WrapperTool>
       <VersionMinor>8</VersionMinor>

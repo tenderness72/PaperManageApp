@@ -209,15 +209,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Acedia"
-        "ProductCode" = "8:{23C2A9F6-7736-4B4A-AEE3-2B45343320F5}"
-        "PackageCode" = "8:{44DC69F2-B3BD-4F20-8A71-B3E8190F5483}"
+        "ProductCode" = "8:{DC420FB4-8457-4F38-8720-01604E225AB0}"
+        "PackageCode" = "8:{8D068FEC-991B-4A0C-BF8D-36407210988E}"
         "UpgradeCode" = "8:{EE72FA30-7A10-42D7-8618-D2C00580CCC9}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.9"
+        "ProductVersion" = "8:1.0.93"
         "Manufacturer" = "8:MukoProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -759,7 +759,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_551459E38D4F45CBAAB84A52CE348789"
             {
-            "SourcePath" = "8:..\\PaperManageApp\\obj\\Release\\net8.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\PaperManageApp\\obj\\Release\\net8.0-windows\\win-x64\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_D5FC3FA2B98648B2AD5105E46D94B8BB"
