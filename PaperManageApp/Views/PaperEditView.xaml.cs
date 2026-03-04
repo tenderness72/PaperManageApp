@@ -180,6 +180,17 @@ namespace PaperManagementApp.Views
             }
         }
 
+        private void ShowLoading(string message)
+        {
+            LoadingStatusText.Text = message;
+            LoadingOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void HideLoading()
+        {
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+        }
+
         // DOI取得ボタンクリック
         private async void FetchDoiButton_Click(object sender, RoutedEventArgs e)
         {
@@ -198,31 +209,41 @@ namespace PaperManagementApp.Views
                 Paper? fetchedPaper;
                 if (!string.IsNullOrWhiteSpace(doi))
                 {
-                    // CrossRef でDOI直接取得
+                    ShowLoading("CrossRefを検索中...");
                     fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(doi);
 
-                    // CrossRef にない場合は J-STAGE でDOI直接取得
                     if (fetchedPaper == null)
+                    {
+                        ShowLoading("J-STAGEを検索中...");
                         fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(doi);
+                    }
 
-                    // J-STAGE にもない場合は OpenAlex でDOI直接取得
                     if (fetchedPaper == null)
+                    {
+                        ShowLoading("OpenAlexを検索中...");
                         fetchedPaper = await _openAlexMetadataService.FetchPaperByDoiAsync(doi);
+                    }
                 }
                 else
                 {
+                    ShowLoading("CrossRefを検索中...");
                     fetchedPaper = await _doiMetadataService.SearchPaperByMetadataAsync(
                         titleText, authorsText, inputYear, journalText);
                 }
 
-                // 書誌情報検索が失敗した場合は J-STAGE → OpenAlex の順で検索
                 if (fetchedPaper == null)
+                {
+                    ShowLoading("J-STAGEを検索中...");
                     fetchedPaper = await _jStageMetadataService.SearchAsync(
                         titleText, authorsText, inputYear, journalText);
+                }
 
                 if (fetchedPaper == null)
+                {
+                    ShowLoading("OpenAlexを検索中...");
                     fetchedPaper = await _openAlexMetadataService.SearchAsync(
                         titleText, authorsText, inputYear, journalText);
+                }
 
                 if (fetchedPaper == null)
                 {
@@ -262,6 +283,7 @@ namespace PaperManagementApp.Views
             }
             finally
             {
+                HideLoading();
                 FetchDoiButton.IsEnabled = true;
                 FetchDoiButton.Content = "DOIから取得";
             }
@@ -351,17 +373,26 @@ namespace PaperManagementApp.Views
                 AutoFetchFromPdfButton.Content = "取得中...";
 
                 Paper? fetchedPaper = null;
+
+                ShowLoading("PDFからDOIを抽出中...");
                 string? extractedDoi = _pdfMetadataExtractionService.TryExtractDoiFromPdf(_pdfFilePath);
 
                 if (!string.IsNullOrWhiteSpace(extractedDoi))
                 {
+                    ShowLoading("CrossRefを検索中...");
                     fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(extractedDoi);
 
                     if (fetchedPaper == null)
+                    {
+                        ShowLoading("J-STAGEを検索中...");
                         fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(extractedDoi);
+                    }
 
                     if (fetchedPaper == null)
+                    {
+                        ShowLoading("OpenAlexを検索中...");
                         fetchedPaper = await _openAlexMetadataService.FetchPaperByDoiAsync(extractedDoi);
+                    }
                 }
 
                 if (fetchedPaper == null)
@@ -370,13 +401,10 @@ namespace PaperManagementApp.Views
                     string authorsHint = AuthorsTextBox.Text ?? string.Empty;
                     string journalHint = JournalTextBox.Text ?? string.Empty;
 
-                    // タイトルヒント候補を優先順に列挙して順次検索する
-                    // 1. フォームに既入力のタイトル
-                    // 2. PDFの本文から抽出したタイトル（フォントサイズ推定）
-                    // 3. ファイル名から推測したタイトル
                     var titleCandidates = new List<string>();
                     if (!string.IsNullOrWhiteSpace(TitleTextBox.Text))
                         titleCandidates.Add(TitleTextBox.Text);
+                    ShowLoading("PDFからタイトルを抽出中...");
                     string? pdfTitle = _pdfMetadataExtractionService.TryExtractTitleFromPdf(_pdfFilePath);
                     if (!string.IsNullOrWhiteSpace(pdfTitle))
                         titleCandidates.Add(pdfTitle);
@@ -386,16 +414,23 @@ namespace PaperManagementApp.Views
 
                     foreach (string titleHint in titleCandidates)
                     {
+                        ShowLoading("CrossRefを検索中...");
                         fetchedPaper = await _doiMetadataService.SearchPaperByMetadataAsync(
                             titleHint, authorsHint, inputYear, journalHint);
 
                         if (fetchedPaper == null)
+                        {
+                            ShowLoading("J-STAGEを検索中...");
                             fetchedPaper = await _jStageMetadataService.SearchAsync(
                                 titleHint, authorsHint, inputYear, journalHint);
+                        }
 
                         if (fetchedPaper == null)
+                        {
+                            ShowLoading("OpenAlexを検索中...");
                             fetchedPaper = await _openAlexMetadataService.SearchAsync(
                                 titleHint, authorsHint, inputYear, journalHint);
+                        }
 
                         if (fetchedPaper != null) break;
                     }
@@ -424,6 +459,7 @@ namespace PaperManagementApp.Views
             }
             finally
             {
+                HideLoading();
                 AutoFetchFromPdfButton.IsEnabled = true;
                 AutoFetchFromPdfButton.Content = "PDFから自動取得";
             }

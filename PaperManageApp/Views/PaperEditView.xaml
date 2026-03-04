@@ -202,5 +202,34 @@
             <Button Content="キャンセル" Click="CancelButton_Click" Margin="0,0,10,0" Padding="15,5"/>
             <Button Content="保存" Click="SaveButton_Click" Padding="15,5" Background="#2ecc71" Foreground="White" BorderThickness="0"/>
         </StackPanel>
+
+        <!-- ローディングオーバーレイ（取得中に表示） -->
+        <Grid x:Name="LoadingOverlay"
+              Grid.Row="0" Grid.RowSpan="3"
+              Visibility="Collapsed"
+              Background="#88000000"
+              Panel.ZIndex="999">
+            <Border Background="White"
+                    CornerRadius="8"
+                    Padding="40,30"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    MinWidth="260">
+                <StackPanel>
+                    <TextBlock x:Name="LoadingStatusText"
+                               Text="検索中..."
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,16"/>
+                    <ProgressBar IsIndeterminate="True"
+                                 Height="4"
+                                 Width="200"
+                                 Foreground="#3498db"
+                                 Background="#e0e0e0"
+                                 BorderThickness="0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Page>
