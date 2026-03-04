@@ -18,6 +18,7 @@ namespace PaperManagementApp.Views
         private RisImportService _risImportService;
         private DoiMetadataService _doiMetadataService;
         private JStageMetadataService _jStageMetadataService;
+        private OpenAlexMetadataService _openAlexMetadataService;
         private PdfMetadataExtractionService _pdfMetadataExtractionService;
         private Paper _currentPaper;
         private bool _isEditMode = false;
@@ -38,6 +39,7 @@ namespace PaperManagementApp.Views
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
             _jStageMetadataService = new JStageMetadataService();
+            _openAlexMetadataService = new OpenAlexMetadataService();
             _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _currentPaper = new Paper();
             _isEditMode = false;
@@ -61,6 +63,7 @@ namespace PaperManagementApp.Views
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
             _jStageMetadataService = new JStageMetadataService();
+            _openAlexMetadataService = new OpenAlexMetadataService();
             _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _isEditMode = true;
 
@@ -84,6 +87,7 @@ namespace PaperManagementApp.Views
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
             _jStageMetadataService = new JStageMetadataService();
+            _openAlexMetadataService = new OpenAlexMetadataService();
             _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _currentPaper = new Paper();
             _isEditMode = false;
@@ -111,6 +115,7 @@ namespace PaperManagementApp.Views
             _risImportService = new RisImportService();
             _doiMetadataService = new DoiMetadataService();
             _jStageMetadataService = new JStageMetadataService();
+            _openAlexMetadataService = new OpenAlexMetadataService();
             _pdfMetadataExtractionService = new PdfMetadataExtractionService();
             _currentPaper = importedPaper;
             _isEditMode = false;
@@ -198,9 +203,11 @@ namespace PaperManagementApp.Views
 
                     // CrossRef にない場合は J-STAGE でDOI直接取得
                     if (fetchedPaper == null)
-                    {
                         fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(doi);
-                    }
+
+                    // J-STAGE にもない場合は OpenAlex でDOI直接取得
+                    if (fetchedPaper == null)
+                        fetchedPaper = await _openAlexMetadataService.FetchPaperByDoiAsync(doi);
                 }
                 else
                 {
@@ -208,12 +215,14 @@ namespace PaperManagementApp.Views
                         titleText, authorsText, inputYear, journalText);
                 }
 
-                // DOI なし・書誌情報検索も失敗した場合は J-STAGE で書誌情報検索
+                // 書誌情報検索が失敗した場合は J-STAGE → OpenAlex の順で検索
                 if (fetchedPaper == null)
-                {
                     fetchedPaper = await _jStageMetadataService.SearchAsync(
                         titleText, authorsText, inputYear, journalText);
-                }
+
+                if (fetchedPaper == null)
+                    fetchedPaper = await _openAlexMetadataService.SearchAsync(
+                        titleText, authorsText, inputYear, journalText);
 
                 if (fetchedPaper == null)
                 {
@@ -348,11 +357,11 @@ namespace PaperManagementApp.Views
                 {
                     fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(extractedDoi);
 
-                    // CrossRef にない場合は J-STAGE でDOI直接取得
                     if (fetchedPaper == null)
-                    {
                         fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(extractedDoi);
-                    }
+
+                    if (fetchedPaper == null)
+                        fetchedPaper = await _openAlexMetadataService.FetchPaperByDoiAsync(extractedDoi);
                 }
 
                 if (fetchedPaper == null)
@@ -381,10 +390,12 @@ namespace PaperManagementApp.Views
                             titleHint, authorsHint, inputYear, journalHint);
 
                         if (fetchedPaper == null)
-                        {
                             fetchedPaper = await _jStageMetadataService.SearchAsync(
                                 titleHint, authorsHint, inputYear, journalHint);
-                        }
+
+                        if (fetchedPaper == null)
+                            fetchedPaper = await _openAlexMetadataService.SearchAsync(
+                                titleHint, authorsHint, inputYear, journalHint);
 
                         if (fetchedPaper != null) break;
                     }
