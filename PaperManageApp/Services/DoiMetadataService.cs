@@ -52,7 +52,7 @@ namespace PaperManagementApp.Services
             var paper = new Paper
             {
                 DOI = normalizedDoi,
-                Title = GetFirstString(message, "title"),
+                Title = GetPreferredTitle(message),
                 Authors = BuildAuthors(message),
                 Year = ExtractYear(message),
                 Journal = GetFirstString(message, "container-title"),
@@ -162,6 +162,18 @@ namespace PaperManagementApp.Services
                 JsonValueKind.Number => value.ToString(),
                 _ => string.Empty
             };
+        }
+
+        // CrossRef は original-title に元言語（日本語等）のタイトルを含めることがある。
+        // original-title が存在すればそちらを優先する。
+        private static string GetPreferredTitle(JsonElement element)
+        {
+            string originalTitle = GetFirstString(element, "original-title");
+            if (!string.IsNullOrWhiteSpace(originalTitle))
+            {
+                return originalTitle;
+            }
+            return GetFirstString(element, "title");
         }
 
         private static string GetFirstString(JsonElement element, string propertyName)
@@ -294,7 +306,7 @@ namespace PaperManagementApp.Services
             return new Paper
             {
                 DOI = NormalizeDoi(doi),
-                Title = GetFirstString(message, "title"),
+                Title = GetPreferredTitle(message),
                 Authors = BuildAuthors(message),
                 Year = ExtractYear(message),
                 Journal = GetFirstString(message, "container-title"),

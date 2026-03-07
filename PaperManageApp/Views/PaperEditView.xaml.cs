@@ -209,13 +209,14 @@ namespace PaperManagementApp.Views
                 Paper? fetchedPaper;
                 if (!string.IsNullOrWhiteSpace(doi))
                 {
-                    ShowLoading("CrossRefを検索中...");
-                    fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(doi);
+                    // 日本語論文に対応するため J-STAGE を最初に試みる
+                    ShowLoading("J-STAGEを検索中...");
+                    fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(doi);
 
                     if (fetchedPaper == null)
                     {
-                        ShowLoading("J-STAGEを検索中...");
-                        fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(doi);
+                        ShowLoading("CrossRefを検索中...");
+                        fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(doi);
                     }
 
                     if (fetchedPaper == null)
@@ -379,13 +380,14 @@ namespace PaperManagementApp.Views
 
                 if (!string.IsNullOrWhiteSpace(extractedDoi))
                 {
-                    ShowLoading("CrossRefを検索中...");
-                    fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(extractedDoi);
+                    // 日本語論文に対応するため J-STAGE を最初に試みる
+                    ShowLoading("J-STAGEを検索中...");
+                    fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(extractedDoi);
 
                     if (fetchedPaper == null)
                     {
-                        ShowLoading("J-STAGEを検索中...");
-                        fetchedPaper = await _jStageMetadataService.FetchPaperByDoiAsync(extractedDoi);
+                        ShowLoading("CrossRefを検索中...");
+                        fetchedPaper = await _doiMetadataService.FetchPaperByDoiAsync(extractedDoi);
                     }
 
                     if (fetchedPaper == null)
