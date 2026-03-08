@@ -161,7 +161,17 @@
 
                             <!-- タグ -->
                             <TextBlock Grid.Row="4" Grid.Column="0" Text="タグ" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="4" Grid.Column="1" x:Name="TagsTextBox" Margin="0,5" Padding="5"/>
+                            <Border Grid.Row="4" Grid.Column="1"
+                                    BorderBrush="#e0e0e0" BorderThickness="1" CornerRadius="4"
+                                    Margin="0,5" Padding="4" MinHeight="32" Background="White">
+                                <WrapPanel x:Name="TagsWrapPanel">
+                                    <TextBox x:Name="TagInputTextBox"
+                                             MinWidth="120" BorderThickness="0" Padding="3,2"
+                                             VerticalAlignment="Center"
+                                             ToolTip="タグを入力してEnterで確定"
+                                             KeyDown="TagInputTextBox_KeyDown"/>
+                                </WrapPanel>
+                            </Border>
                         </Grid>
                     </TabItem>
 
