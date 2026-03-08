@@ -139,6 +139,7 @@ namespace PaperManagementApp.Services
         // 文中引用（例：牧村(2006)）を挿入
         public bool InsertInTextCitation(Paper paper)
         {
+            Word.Selection? selection = null;
             try
             {
                 if (_wordApp == null || _currentDocument == null)
@@ -150,7 +151,7 @@ namespace PaperManagementApp.Services
                 }
 
                 // カーソル位置に引用を挿入
-                Word.Selection selection = _wordApp.Selection;
+                selection = _wordApp.Selection;
                 selection.TypeText(paper.GetInTextCitation());
 
                 return true;
@@ -160,11 +161,17 @@ namespace PaperManagementApp.Services
                 MessageBox.Show($"引用の挿入に失敗しました: {ex.Message}");
                 return false;
             }
+            finally
+            {
+                if (selection != null) Marshal.ReleaseComObject(selection);
+            }
         }
 
         // 参考文献リストに完全な引用情報を追加
         public bool InsertFullCitation(Paper paper)
         {
+            Word.Selection? selection = null;
+            Word.Paragraph? para = null;
             try
             {
                 if (_wordApp == null || _currentDocument == null)
@@ -176,7 +183,7 @@ namespace PaperManagementApp.Services
                 }
 
                 // カーソル位置に完全な引用情報を挿入
-                Word.Selection selection = _wordApp.Selection;
+                selection = _wordApp.Selection;
 
                 // 引用情報を取得
                 string citation = paper.GetFullCitation();
@@ -189,7 +196,7 @@ namespace PaperManagementApp.Services
                 if (citation.Length > 80)  // 80文字を超える場合は2行になると仮定
                 {
                     // 段落設定を取得
-                    Word.Paragraph para = selection.Paragraphs.Last;
+                    para = selection.Paragraphs.Last;
 
                     // 1行目のハンギングインデントを設定（Windows APIのポイント単位）
                     // 全角スペース2つ分（約40ポイント）
@@ -204,11 +211,17 @@ namespace PaperManagementApp.Services
                 MessageBox.Show($"引用の挿入に失敗しました: {ex.Message}");
                 return false;
             }
+            finally
+            {
+                if (para != null) Marshal.ReleaseComObject(para);
+                if (selection != null) Marshal.ReleaseComObject(selection);
+            }
         }
 
         // 参考文献リストを生成して挿入
         public bool InsertReferenceList(List<Paper> papers)
         {
+            Word.Selection? selection = null;
             try
             {
                 if (_wordApp == null || _currentDocument == null)
@@ -219,7 +232,7 @@ namespace PaperManagementApp.Services
                     }
                 }
 
-                Word.Selection selection = _wordApp.Selection;
+                selection = _wordApp.Selection;
 
                 // 見出しを挿入
                 selection.Font.Bold = 1;
@@ -227,10 +240,7 @@ namespace PaperManagementApp.Services
                 selection.TypeParagraph();
                 selection.Font.Bold = 0;
 
-                // 論文リストを著者名でソート
-                papers.Sort((a, b) => string.Compare(a.Authors, b.Authors));
-
-                // すべての論文の引用情報を挿入
+                // すべての論文の引用情報を挿入（ソートは呼び出し元で実施済み）
                 foreach (var paper in papers)
                 {
                     // 引用情報を取得
@@ -243,13 +253,21 @@ namespace PaperManagementApp.Services
                     // 論文情報が長い場合、2行目以降のインデントのためのフラグを設定
                     if (citation.Length > 80)  // 80文字を超える場合は2行になると仮定
                     {
-                        // 段落設定を取得
-                        Word.Paragraph para = selection.Paragraphs.Last;
+                        Word.Paragraph? para = null;
+                        try
+                        {
+                            // 段落設定を取得
+                            para = selection.Paragraphs.Last;
 
-                        // ハンギングインデントを設定（Windows APIのポイント単位）
-                        // 全角スペース2つ分（約40ポイント）
-                        para.FirstLineIndent = -40f;  // ハンギングインデント
-                        para.LeftIndent = 40f;       // 左インデント
+                            // ハンギングインデントを設定（Windows APIのポイント単位）
+                            // 全角スペース2つ分（約40ポイント）
+                            para.FirstLineIndent = -40f;  // ハンギングインデント
+                            para.LeftIndent = 40f;       // 左インデント
+                        }
+                        finally
+                        {
+                            if (para != null) Marshal.ReleaseComObject(para);
+                        }
                     }
                 }
 
@@ -259,6 +277,10 @@ namespace PaperManagementApp.Services
             {
                 MessageBox.Show($"参考文献リストの挿入に失敗しました: {ex.Message}");
                 return false;
+            }
+            finally
+            {
+                if (selection != null) Marshal.ReleaseComObject(selection);
             }
         }
 

@@ -83,6 +83,28 @@ namespace PaperManagementApp.Models
             }
         }
 
+        // 第1著者の姓（ソートキー用）
+        [NotMapped]
+        public string FirstAuthorSortKey
+        {
+            get
+            {
+                string first = AuthorArray.FirstOrDefault() ?? string.Empty;
+                if (string.IsNullOrEmpty(first)) return string.Empty;
+                if (first.Contains(",")) return first.Split(',')[0].Trim();
+                if (first.Contains(" "))  return first.Split(' ')[0].Trim();
+                return first;
+            }
+        }
+
+        // 著者名に日本語文字が含まれるかどうか
+        [NotMapped]
+        public bool HasJapaneseAuthors
+            => AuthorArray.Any(a => a.Any(c =>
+                (c >= '\u3040' && c <= '\u309F') ||  // ひらがな
+                (c >= '\u30A0' && c <= '\u30FF') ||  // カタカナ
+                (c >= '\u4E00' && c <= '\u9FFF')));  // 漢字
+
         // タグを配列として取得
         [NotMapped]
         public string[] TagArray

@@ -700,16 +700,23 @@ namespace PaperManagementApp.Views
                 _currentPaper.Notes = null;
 
                 // データベースに保存
+                string saveMessage = _isEditMode ? "論文情報を更新しました。" : "新しい論文を追加しました。";
+                MessageBoxImage saveIcon = MessageBoxImage.Information;
+
+                if (_currentPaper.HasJapaneseAuthors)
+                {
+                    saveMessage += "\n\n⚠ 著者名に日本語が含まれています。\n" +
+                                   "参考文献リストのソートでは、読み仮名情報がないため\n" +
+                                   "五十音順ではなくUnicode順で並ぶ場合があります。";
+                    saveIcon = MessageBoxImage.Warning;
+                }
+
                 if (_isEditMode)
-                {
                     await _paperService.UpdatePaperAsync(_currentPaper);
-                    MessageBox.Show("論文情報を更新しました。", "保存完了", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
                 else
-                {
                     await _paperService.AddPaperAsync(_currentPaper);
-                    MessageBox.Show("新しい論文を追加しました。", "保存完了", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
+
+                MessageBox.Show(saveMessage, "保存完了", MessageBoxButton.OK, saveIcon);
 
                 // 一覧画面に戻る
                 NavigationService.GoBack();

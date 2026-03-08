@@ -271,8 +271,21 @@ namespace PaperManagementApp.Views
                     return;
                 }
 
-                // 著者名でソート
-                var sortedPapers = papers.OrderBy(p => p.Authors).ToList();
+                // 第1著者の姓でアルファベット順にソート
+                var sortedPapers = papers.OrderBy(p => p.FirstAuthorSortKey, StringComparer.OrdinalIgnoreCase).ToList();
+
+                // 日本語著者名が含まれる場合は挿入前に警告
+                if (sortedPapers.Any(p => p.HasJapaneseAuthors))
+                {
+                    var warnResult = MessageBox.Show(
+                        "日本語の著者名が含まれている論文があります。\n" +
+                        "読み仮名情報がないため、日本語著者名は五十音順ではなくUnicode順で並びます。\n\n" +
+                        "このまま挿入しますか？",
+                        "ソート順のご注意",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+                    if (warnResult == MessageBoxResult.No) return;
+                }
 
                 if (_wordService.InsertReferenceList(sortedPapers))
                 {
