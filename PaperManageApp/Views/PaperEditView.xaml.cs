@@ -4,10 +4,13 @@ using PaperManagementApp.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Navigation;
 
 namespace PaperManagementApp.Views
@@ -541,7 +544,10 @@ namespace PaperManagementApp.Views
             ClinicalAreaTextBox.Text = paper.ClinicalArea;
             ApproachTextBox.Text = paper.Approach;
             KeywordsTextBox.Text = paper.Keywords;
-            TagsTextBox.Text = paper.Tags;
+            TagsWrapPanel.Children.Clear();
+            TagsWrapPanel.Children.Add(TagInputTextBox);
+            foreach (var tag in paper.TagArray.Where(t => !string.IsNullOrEmpty(t)))
+                AddTagChip(tag);
 
             // 論文セクションの内容
             AbstractTextBox.Text = paper.Abstract;
@@ -686,7 +692,9 @@ namespace PaperManagementApp.Views
                 _currentPaper.ClinicalArea = ClinicalAreaTextBox.Text.Trim();
                 _currentPaper.Approach = ApproachTextBox.Text.Trim();
                 _currentPaper.Keywords = KeywordsTextBox.Text.Trim();
-                _currentPaper.Tags = TagsTextBox.Text.Trim();
+                string uncommitted = TagInputTextBox.Text.Trim();
+                if (!string.IsNullOrEmpty(uncommitted)) AddTagChip(uncommitted);
+                _currentPaper.Tags = string.Join(",", GetCurrentTags());
 
                 // 論文セクション
                 _currentPaper.Abstract = AbstractTextBox.Text.Trim();
@@ -743,6 +751,73 @@ namespace PaperManagementApp.Views
                 Console.WriteLine($"一般エラー: {ex.Message}");
                 Console.WriteLine($"内部例外: {ex.InnerException?.Message}");
             }
+        }
+
+        // ---- タグチップ入力 ----
+
+        // Enterキーでタグを確定
+        private void TagInputTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                string tag = TagInputTextBox.Text.Trim();
+                if (!string.IsNullOrEmpty(tag))
+                {
+                    AddTagChip(tag);
+                    TagInputTextBox.Clear();
+                }
+                e.Handled = true;
+            }
+        }
+
+        // タグチップを WrapPanel に追加
+        private void AddTagChip(string tag)
+        {
+            if (GetCurrentTags().Contains(tag)) return;
+
+            var chip = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(0x34, 0x98, 0xdb)),
+                CornerRadius = new CornerRadius(12),
+                Padding = new Thickness(8, 3, 4, 3),
+                Margin = new Thickness(2),
+                Tag = tag
+            };
+
+            var sp = new StackPanel { Orientation = Orientation.Horizontal };
+            sp.Children.Add(new TextBlock
+            {
+                Text = tag,
+                Foreground = Brushes.White,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+
+            var removeBtn = new Button
+            {
+                Content = "×",
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Foreground = Brushes.White,
+                Padding = new Thickness(4, 0, 0, 0),
+                Cursor = Cursors.Hand
+            };
+            removeBtn.Click += (s, e) => TagsWrapPanel.Children.Remove(chip);
+
+            sp.Children.Add(removeBtn);
+            chip.Child = sp;
+
+            int inputIndex = TagsWrapPanel.Children.IndexOf(TagInputTextBox);
+            TagsWrapPanel.Children.Insert(inputIndex, chip);
+        }
+
+        // 現在のチップからタグ一覧を取得
+        private List<string> GetCurrentTags()
+        {
+            return TagsWrapPanel.Children
+                .OfType<Border>()
+                .Select(b => b.Tag?.ToString() ?? string.Empty)
+                .Where(t => !string.IsNullOrEmpty(t))
+                .ToList();
         }
     }
 }

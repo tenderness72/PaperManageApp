@@ -91,10 +91,14 @@
                           SelectionChanged="FilterComboBox_SelectionChanged"
                           DisplayMemberPath="Journal"/>
 
-                <ComboBox x:Name="ClinicalAreaFilterComboBox" 
-                          Margin="5,5" 
+                <ComboBox x:Name="ClinicalAreaFilterComboBox"
+                          Margin="5,5"
                           SelectionChanged="FilterComboBox_SelectionChanged"
                           DisplayMemberPath="ClinicalArea"/>
+
+                <ComboBox x:Name="TagFilterComboBox"
+                          Margin="5,5"
+                          SelectionChanged="FilterComboBox_SelectionChanged"/>
             </StackPanel>
         </Grid>
 

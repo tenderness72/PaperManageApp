@@ -21,6 +21,7 @@ namespace PaperManagementApp.Views
         private int? _selectedYear = null;
         private string _selectedJournal = null;
         private string _selectedClinicalArea = null;
+        private string _selectedTag = null;
 
         // コンストラクタ（標準）
         public PaperListView()
@@ -76,11 +77,12 @@ namespace PaperManagementApp.Views
         }
 
         // フィルターの適用（MainWindow から呼ばれる）
-        public async Task ApplyFilter(int? year, string journal, string clinicalArea)
+        public async Task ApplyFilter(int? year, string journal, string clinicalArea, string tag = null)
         {
             _selectedYear = year;
             _selectedJournal = journal;
             _selectedClinicalArea = clinicalArea;
+            _selectedTag = tag;
 
             await ApplyFiltersAndSearchAsync();
         }
@@ -132,8 +134,10 @@ namespace PaperManagementApp.Views
                     bool matchesYear = _selectedYear == null || paper.Year == _selectedYear;
                     bool matchesJournal = string.IsNullOrEmpty(_selectedJournal) || paper.Journal.Contains(_selectedJournal);
                     bool matchesClinicalArea = string.IsNullOrEmpty(_selectedClinicalArea) || paper.ClinicalArea.Contains(_selectedClinicalArea);
+                    bool matchesTag = string.IsNullOrEmpty(_selectedTag) ||
+                                      paper.TagArray.Any(t => t.Trim() == _selectedTag);
 
-                    if (matchesYear && matchesJournal && matchesClinicalArea)
+                    if (matchesYear && matchesJournal && matchesClinicalArea && matchesTag)
                     {
                         _displayedPapers.Add(paper);
                     }

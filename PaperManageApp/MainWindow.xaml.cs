@@ -55,6 +55,15 @@ namespace PaperManagementApp
                     ClinicalAreaFilterComboBox.Items.Add(new ComboBoxItem { Content = area });
                 }
                 ClinicalAreaFilterComboBox.SelectedIndex = 0;
+
+                // タグのフィルター選択肢を読み込み
+                TagFilterComboBox.Items.Clear();
+                TagFilterComboBox.Items.Add(new ComboBoxItem { Content = "すべてのタグ" });
+                foreach (var tag in await _paperService.GetTagsListAsync())
+                {
+                    TagFilterComboBox.Items.Add(new ComboBoxItem { Content = tag });
+                }
+                TagFilterComboBox.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
@@ -76,6 +85,7 @@ namespace PaperManagementApp
             YearFilterComboBox.SelectedIndex = 0;
             JournalFilterComboBox.SelectedIndex = 0;
             ClinicalAreaFilterComboBox.SelectedIndex = 0;
+            TagFilterComboBox.SelectedIndex = 0;
         }
 
         // お気に入りボタンクリック
@@ -89,6 +99,7 @@ namespace PaperManagementApp
             YearFilterComboBox.SelectedIndex = 0;
             JournalFilterComboBox.SelectedIndex = 0;
             ClinicalAreaFilterComboBox.SelectedIndex = 0;
+            TagFilterComboBox.SelectedIndex = 0;
 
             // お気に入り一覧を表示
             MainFrame.Navigate(new PaperListView(true));
@@ -163,8 +174,19 @@ namespace PaperManagementApp
                     }
                 }
 
+                // 選択されたタグ
+                string? selectedTag = null;
+                if (TagFilterComboBox.SelectedIndex > 0)
+                {
+                    var tagItem = TagFilterComboBox.SelectedItem as ComboBoxItem;
+                    if (tagItem != null)
+                    {
+                        selectedTag = tagItem.Content.ToString();
+                    }
+                }
+
                 // フィルターを適用
-                await listView.ApplyFilter(selectedYear, selectedJournal, selectedClinicalArea);
+                await listView.ApplyFilter(selectedYear, selectedJournal, selectedClinicalArea, selectedTag);
             }
         }
     }
