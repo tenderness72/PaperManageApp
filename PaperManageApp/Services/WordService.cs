@@ -240,10 +240,7 @@ namespace PaperManagementApp.Services
                 selection.TypeParagraph();
                 selection.Font.Bold = 0;
 
-                // 論文リストを著者名でソート
-                papers.Sort((a, b) => string.Compare(a.Authors, b.Authors));
-
-                // すべての論文の引用情報を挿入
+                // すべての論文の引用情報を挿入（ソートは呼び出し元で実施済み）
                 foreach (var paper in papers)
                 {
                     // 引用情報を取得
