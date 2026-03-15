@@ -22,19 +22,18 @@ namespace PaperManagementApp.Models
             MigrateColumns();
         }
 
-        // 既存DBに不足カラムを追加する簡易マイグレーション
-        // ExecuteSqlRaw で EF Core の接続管理に委ねる。
-        // Issue 列が既に存在する場合は SQLite が "duplicate column name" エラーを返すが無視する。
+        // 既存DBに不足カラムを追加 / NULL値を修正する簡易マイグレーション
         private void MigrateColumns()
         {
-            try
-            {
-                Database.ExecuteSqlRaw("ALTER TABLE Papers ADD COLUMN Issue TEXT");
-            }
-            catch
-            {
-                // Issue 列が既に存在する場合のエラーは正常（無視）
-            }
+            // Issue 列の追加（既存の場合は duplicate column name エラーを無視）
+            try { Database.ExecuteSqlRaw("ALTER TABLE Papers ADD COLUMN Issue TEXT"); } catch { }
+
+            // bool 型カラムが NULL だと EF Core が GetBoolean() 時に例外を投げるため 0 で埋める
+            try { Database.ExecuteSqlRaw("UPDATE Papers SET IsFavorite = 0 WHERE IsFavorite IS NULL"); } catch { }
+
+            // DateTime 型カラムも同様に NULL を修正
+            try { Database.ExecuteSqlRaw("UPDATE Papers SET CreatedAt = datetime('now') WHERE CreatedAt IS NULL"); } catch { }
+            try { Database.ExecuteSqlRaw("UPDATE Papers SET UpdatedAt = datetime('now') WHERE UpdatedAt IS NULL"); } catch { }
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
