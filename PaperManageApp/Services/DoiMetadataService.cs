@@ -78,7 +78,7 @@ namespace PaperManagementApp.Services
 
             if (!string.IsNullOrWhiteSpace(authors))
             {
-                queryParts.Add(authors.Trim().Replace("|", " "));
+                queryParts.Add(authors.Trim().Replace("・", " "));
             }
 
             if (year.HasValue && year.Value > 0)
@@ -216,7 +216,7 @@ namespace PaperManagementApp.Services
                 }
             }
 
-            return string.Join("|", authors);
+            return string.Join("・", authors);
         }
 
         private static int ExtractYear(JsonElement message)

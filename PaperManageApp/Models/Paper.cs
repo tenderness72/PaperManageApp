@@ -80,7 +80,9 @@ namespace PaperManagementApp.Models
             get
             {
                 if (string.IsNullOrEmpty(Authors)) return new string[0];
-                char separator = Authors.Contains('|') ? '|' : '.';
+                char separator = Authors.Contains('・') ? '・'
+                               : Authors.Contains('|') ? '|'
+                               : '.';
                 return Authors.Split(separator)
                     .Select(a => a.Trim())
                     .Where(a => !string.IsNullOrEmpty(a))
@@ -97,7 +99,9 @@ namespace PaperManagementApp.Models
             {
                 if (!string.IsNullOrWhiteSpace(AuthorsKana))
                 {
-                    char sep = AuthorsKana.Contains('|') ? '|' : '.';
+                    char sep = AuthorsKana.Contains('・') ? '・'
+                             : AuthorsKana.Contains('|') ? '|'
+                             : '.';
                     string firstKana = AuthorsKana.Split(sep)[0].Trim();
                     return ExtractLastName(firstKana);
                 }

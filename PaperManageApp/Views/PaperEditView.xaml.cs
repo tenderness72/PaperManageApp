@@ -304,7 +304,7 @@ namespace PaperManagementApp.Views
 
             if (!string.IsNullOrWhiteSpace(fetchedPaper.Authors))
             {
-                AuthorsTextBox.Text = fetchedPaper.Authors.Replace("|", "・");
+                AuthorsTextBox.Text = fetchedPaper.Authors;
             }
 
             if (fetchedPaper.Year > 0)
@@ -515,8 +515,8 @@ namespace PaperManagementApp.Views
         private void PopulateFormFromPaper(Paper paper)
         {
             TitleTextBox.Text = paper.Title;
-            AuthorsTextBox.Text = paper.Authors?.Replace("|", "・") ?? "";
-            AuthorsKanaTextBox.Text = paper.AuthorsKana?.Replace("|", "・") ?? "";
+            AuthorsTextBox.Text = paper.Authors ?? "";
+            AuthorsKanaTextBox.Text = paper.AuthorsKana ?? "";
             YearTextBox.Text = paper.Year.ToString();
             JournalTextBox.Text = paper.Journal;
             VolumeTextBox.Text = paper.Volume;
@@ -639,9 +639,9 @@ namespace PaperManagementApp.Views
             {
                 // 現在の論文データを更新
                 _currentPaper.Title = TitleTextBox.Text.Trim();
-                _currentPaper.Authors = AuthorsTextBox.Text.Trim().Replace("・", "|");
+                _currentPaper.Authors = AuthorsTextBox.Text.Trim();
                 _currentPaper.AuthorsKana = string.IsNullOrWhiteSpace(AuthorsKanaTextBox.Text)
-                    ? null : AuthorsKanaTextBox.Text.Trim().Replace("・", "|");
+                    ? null : AuthorsKanaTextBox.Text.Trim();
                 _currentPaper.Year = int.Parse(YearTextBox.Text.Trim());
                 _currentPaper.Journal = JournalTextBox.Text.Trim();
                 _currentPaper.Volume = VolumeTextBox.Text.Trim();

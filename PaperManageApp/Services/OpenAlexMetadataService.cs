@@ -131,7 +131,7 @@ namespace PaperManagementApp.Services
                 string name = author.TryGetProperty("display_name", out var n) ? n.GetString() ?? string.Empty : string.Empty;
                 if (!string.IsNullOrWhiteSpace(name)) names.Add(name);
             }
-            return string.Join("|", names);
+            return string.Join("・", names);
         }
 
         private static string BuildJournal(JsonElement work)

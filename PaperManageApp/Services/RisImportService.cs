@@ -122,8 +122,8 @@ namespace PaperManagementApp.Services
                         formattedAuthors.Add(trimmedAuthor);
                 }
 
-                // | で連結（AuthorArray の分割規則に対応）
-                paper.Authors = string.Join("|", formattedAuthors);
+                // ・ で連結（AuthorArray の分割規則に対応）
+                paper.Authors = string.Join("・", formattedAuthors);
             }
             // 出版年
             if (risData.ContainsKey("PY"))

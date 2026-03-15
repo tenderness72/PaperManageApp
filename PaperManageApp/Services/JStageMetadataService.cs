@@ -259,14 +259,14 @@ namespace PaperManagementApp.Services
 
             if (jaNames != null && jaNames.Count > 0)
             {
-                return string.Join("|", jaNames);
+                return string.Join("・", jaNames);
             }
 
             var enNames = authorElement.Element(Atom + "en")?.Elements(Atom + "name")
                 .Select(n => n.Value)
                 .Where(n => !string.IsNullOrWhiteSpace(n));
 
-            return enNames != null ? string.Join("|", enNames) : string.Empty;
+            return enNames != null ? string.Join("・", enNames) : string.Empty;
         }
 
         private static int ParseYear(string pubyear)
