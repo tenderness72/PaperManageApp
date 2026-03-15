@@ -177,22 +177,27 @@ namespace PaperManagementApp.Services
             return paper;
         }
 
-        // お気に入り状態の切り替え
-        public async Task<Paper> ToggleFavoriteAsync(int paperId)
+        // お気に入り状態を指定値にセット
+        public async Task SetFavoriteAsync(int paperId, bool isFavorite)
         {
             var paper = await _dbContext.Papers.FindAsync(paperId);
-
-            if (paper == null)
-            {
-                throw new KeyNotFoundException($"ID: {paperId} の論文が見つかりません");
-            }
-
-            paper.IsFavorite = !paper.IsFavorite;
+            if (paper == null) throw new KeyNotFoundException($"ID: {paperId} の論文が見つかりません");
+            paper.IsFavorite = isFavorite;
             paper.UpdatedAt = DateTime.Now;
-
             await _dbContext.SaveChangesAsync();
+        }
 
-            return paper;
+        // 複数論文のお気に入り状態を指定値にセット
+        public async Task SetFavoritesAsync(IEnumerable<int> paperIds, bool isFavorite)
+        {
+            foreach (int id in paperIds)
+            {
+                var paper = await _dbContext.Papers.FindAsync(id);
+                if (paper == null) continue;
+                paper.IsFavorite = isFavorite;
+                paper.UpdatedAt = DateTime.Now;
+            }
+            await _dbContext.SaveChangesAsync();
         }
 
         // 論文の削除

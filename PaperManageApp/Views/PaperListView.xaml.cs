@@ -326,16 +326,16 @@ namespace PaperManagementApp.Views
             var paper = _allPapers?.FirstOrDefault(p => p.Id == paperId);
             if (paper == null) return;
 
-            // ① ローカルを先に変えてUIを即時更新
-            paper.IsFavorite = !paper.IsFavorite;
+            // ① 新しい値を確定してからUIとDBに同じ値を書く（二重トグル防止）
+            bool newValue = !paper.IsFavorite;
+            paper.IsFavorite = newValue;
             PapersDataGrid.Items.Refresh();
 
-            bool needsReload = _showFavoritesOnly && !paper.IsFavorite;
+            bool needsReload = _showFavoritesOnly && !newValue;
 
-            // ② バックグラウンドでDB更新
             try
             {
-                await _paperService.ToggleFavoriteAsync(paperId);
+                await _paperService.SetFavoriteAsync(paperId, newValue);
                 if (needsReload)
                 {
                     await LoadPapersAsync();
@@ -345,7 +345,7 @@ namespace PaperManagementApp.Views
             catch (Exception ex)
             {
                 // 失敗したらロールバック
-                paper.IsFavorite = !paper.IsFavorite;
+                paper.IsFavorite = !newValue;
                 PapersDataGrid.Items.Refresh();
                 MessageBox.Show($"お気に入り状態の更新中にエラーが発生しました: {ex.Message}",
                     "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -357,14 +357,25 @@ namespace PaperManagementApp.Views
         {
             var targets = _displayedPapers?.Where(p => p.IsSelected).ToList();
             if (targets == null || targets.Count == 0) return;
+
+            // 選択中の過半数がお気に入りなら解除、そうでなければ追加
+            bool newValue = targets.Count(p => p.IsFavorite) < targets.Count / 2.0 + 1;
+            foreach (var p in targets) p.IsFavorite = newValue;
+            PapersDataGrid.Items.Refresh();
+
             try
             {
-                await _paperService.ToggleFavoritesAsync(targets.Select(p => p.Id));
-                await LoadPapersAsync();
-                await ApplyFiltersAndSearchAsync();
+                await _paperService.SetFavoritesAsync(targets.Select(p => p.Id), newValue);
+                if (_showFavoritesOnly)
+                {
+                    await LoadPapersAsync();
+                    await ApplyFiltersAndSearchAsync();
+                }
             }
             catch (Exception ex)
             {
+                foreach (var p in targets) p.IsFavorite = !newValue;
+                PapersDataGrid.Items.Refresh();
                 MessageBox.Show($"お気に入り状態の更新中にエラーが発生しました: {ex.Message}",
                     "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
