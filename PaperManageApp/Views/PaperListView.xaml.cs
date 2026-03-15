@@ -316,31 +316,37 @@ namespace PaperManagementApp.Views
             }
         }
 
-        // ★ボタン：個別お気に入り切替
+        // ★ボタン：個別お気に入り切替（楽観的更新）
         private async void StarButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             if (button?.Tag == null) return;
             int paperId = Convert.ToInt32(button.Tag);
+
+            var paper = _allPapers?.FirstOrDefault(p => p.Id == paperId);
+            if (paper == null) return;
+
+            // ① ローカルを先に変えてUIを即時更新
+            paper.IsFavorite = !paper.IsFavorite;
+            PapersDataGrid.Items.Refresh();
+
+            bool needsReload = _showFavoritesOnly && !paper.IsFavorite;
+
+            // ② バックグラウンドでDB更新
             try
             {
                 await _paperService.ToggleFavoriteAsync(paperId);
-                // お気に入りのみ表示中に解除した場合はリロード
-                var paper = _allPapers?.FirstOrDefault(p => p.Id == paperId);
-                if (paper != null)
+                if (needsReload)
                 {
-                    paper.IsFavorite = !paper.IsFavorite;
-                    if (_showFavoritesOnly && !paper.IsFavorite)
-                    {
-                        await LoadPapersAsync();
-                        await ApplyFiltersAndSearchAsync();
-                        return;
-                    }
+                    await LoadPapersAsync();
+                    await ApplyFiltersAndSearchAsync();
                 }
-                PapersDataGrid.Items.Refresh();
             }
             catch (Exception ex)
             {
+                // 失敗したらロールバック
+                paper.IsFavorite = !paper.IsFavorite;
+                PapersDataGrid.Items.Refresh();
                 MessageBox.Show($"お気に入り状態の更新中にエラーが発生しました: {ex.Message}",
                     "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
