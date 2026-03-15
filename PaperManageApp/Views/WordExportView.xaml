@@ -61,29 +61,39 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- 検索部分 -->
+            <!-- 検索・選択操作部分 -->
             <StackPanel Grid.Row="0" Margin="0,0,0,10">
                 <TextBlock Text="引用する論文を選択" FontWeight="Bold"/>
-                <Grid Margin="0,5,0,0">
+                <Grid Margin="0,5,0,5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-
-                    <TextBox x:Name="SearchTextBox" 
+                    <TextBox x:Name="SearchTextBox"
                              Padding="5"
                              TextChanged="SearchTextBox_TextChanged"/>
-
-                    <Button Grid.Column="1" 
-                            Content="検索" 
+                    <Button Grid.Column="1"
+                            Content="検索"
                             Margin="5,0,0,0"
                             Padding="15,0"
                             Click="SearchButton_Click"/>
                 </Grid>
+                <!-- 選択操作バー -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox x:Name="SelectAllCheckBox"
+                              Click="SelectAllCheckBox_Click"
+                              VerticalAlignment="Center"
+                              Margin="0,0,8,0"
+                              ToolTip="すべて選択 / 解除"/>
+                    <TextBlock x:Name="SelectionCountText"
+                               Text="0件選択中"
+                               VerticalAlignment="Center"
+                               Foreground="#666"/>
+                </StackPanel>
             </StackPanel>
 
             <!-- 論文リスト -->
-            <DataGrid x:Name="PapersDataGrid" 
+            <DataGrid x:Name="PapersDataGrid"
                       Grid.Row="1"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
@@ -96,27 +106,39 @@
                       AlternatingRowBackground="#f9f9f9">
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="タイトル" 
-                                        Binding="{Binding Title}" 
+                    <!-- 選択チェックボックス列 -->
+                    <DataGridTemplateColumn Width="35">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Click="SelectionCheckBox_Click"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="タイトル"
+                                        Binding="{Binding Title}"
                                         Width="2*"/>
 
-                    <DataGridTextColumn Header="著者" 
-                                        Binding="{Binding Authors}" 
+                    <DataGridTextColumn Header="著者"
+                                        Binding="{Binding Authors}"
                                         Width="1*"/>
 
-                    <DataGridTextColumn Header="年" 
-                                        Binding="{Binding Year}" 
+                    <DataGridTextColumn Header="年"
+                                        Binding="{Binding Year}"
                                         Width="50"/>
 
-                    <DataGridTextColumn Header="ジャーナル" 
-                                        Binding="{Binding Journal}" 
+                    <DataGridTextColumn Header="ジャーナル"
+                                        Binding="{Binding Journal}"
                                         Width="1*"/>
 
                     <DataGridTemplateColumn Width="200">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button Content="本文引用" 
+                                    <Button Content="本文引用"
                                             Click="InsertInTextCitationButton_Click"
                                             Tag="{Binding Id}"
                                             Margin="0,0,5,0"
@@ -124,16 +146,16 @@
                                             Background="#3498db"
                                             Foreground="White"
                                             BorderThickness="0"
-                                            ToolTip="例: 牧村(2006)"/>
+                                            ToolTip="例: 牧村（2006）"/>
 
-                                    <Button Content="文献リスト" 
+                                    <Button Content="文献リスト"
                                             Click="InsertFullCitationButton_Click"
                                             Tag="{Binding Id}"
                                             Padding="5,2"
                                             Background="#2ecc71"
                                             Foreground="White"
                                             BorderThickness="0"
-                                            ToolTip="例: 牧村 雅(2006). 論文タイトル 雑誌名 巻号, pp100-108"/>
+                                            ToolTip="例: 牧村 雅（2006）. 論文タイトル 雑誌名 巻号, pp100-108"/>
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

@@ -48,12 +48,39 @@ namespace PaperManagementApp.Views
                 _allPapers = await _paperService.GetAllPapersAsync();
                 _displayedPapers = new List<Paper>(_allPapers);
                 PapersDataGrid.ItemsSource = _displayedPapers;
+                UpdateSelectionUI();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"論文データの読み込み中にエラーが発生しました: {ex.Message}",
                     "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        // チェックボックス選択変更
+        private void SelectionCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSelectionUI();
+        }
+
+        // すべて選択 / 解除
+        private void SelectAllCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            bool select = SelectAllCheckBox.IsChecked == true;
+            if (_displayedPapers == null) return;
+            foreach (var p in _displayedPapers) p.IsSelected = select;
+            PapersDataGrid.Items.Refresh();
+            UpdateSelectionUI();
+        }
+
+        // 選択件数 UI 更新
+        private void UpdateSelectionUI()
+        {
+            if (_displayedPapers == null) return;
+            int count = _displayedPapers.Count(p => p.IsSelected);
+            SelectionCountText.Text = $"{count}件選択中";
+            SelectAllCheckBox.IsChecked = count > 0 && count == _displayedPapers.Count ? true
+                                        : count == 0 ? false : (bool?)null;
         }
 
         // Wordの状態チェック
@@ -143,6 +170,7 @@ namespace PaperManagementApp.Views
 
                 PapersDataGrid.ItemsSource = null;
                 PapersDataGrid.ItemsSource = _displayedPapers;
+                UpdateSelectionUI();
             }
             catch (Exception ex)
             {
@@ -251,7 +279,14 @@ namespace PaperManagementApp.Views
         // 選択した論文のみでの参考文献リストの生成
         private void InsertSelectedReferencesButton_Click(object sender, RoutedEventArgs e)
         {
-            InsertReferencesList(_displayedPapers);
+            var selected = _displayedPapers?.Where(p => p.IsSelected).ToList();
+            if (selected == null || selected.Count == 0)
+            {
+                MessageBox.Show("論文にチェックを入れてから実行してください。",
+                    "未選択", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            InsertReferencesList(selected);
         }
 
         // 参考文献リストの挿入処理
