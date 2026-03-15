@@ -182,27 +182,17 @@ namespace PaperManagementApp.Services
                     }
                 }
 
-                // カーソル位置に完全な引用情報を挿入
                 selection = _wordApp.Selection;
 
-                // 引用情報を取得
-                string citation = paper.GetFullCitation();
+                // 書式付きセグメントを順に挿入（誌名・巻数をイタリック体に: JPA 3.10.2/3.10.3）
+                InsertCitationSegments(selection, paper);
+                selection.Font.Italic = 0;
+                selection.TypeParagraph();
 
-                // 初回の行を挿入
-                selection.TypeText(citation);
-                selection.TypeParagraph(); // 改行
-
-                // 論文情報が長い場合、2行目以降のインデントのためのフラグを設定
-                if (citation.Length > 80)  // 80文字を超える場合は2行になると仮定
-                {
-                    // 段落設定を取得
-                    para = selection.Paragraphs.Last;
-
-                    // 1行目のハンギングインデントを設定（Windows APIのポイント単位）
-                    // 全角スペース2つ分（約40ポイント）
-                    para.FirstLineIndent = -40f;  // ハンギングインデント
-                    para.LeftIndent = 40f;       // 左インデント
-                }
+                // ハンギングインデント: 2行目以降を全角2文字（≈21pt）字下げ (JPA 3.10.1(1))
+                para = selection.Paragraphs.Last;
+                para.LeftIndent = 21f;
+                para.FirstLineIndent = -21f;
 
                 return true;
             }
@@ -243,31 +233,22 @@ namespace PaperManagementApp.Services
                 // すべての論文の引用情報を挿入（ソートは呼び出し元で実施済み）
                 foreach (var paper in papers)
                 {
-                    // 引用情報を取得
-                    string citation = paper.GetFullCitation();
-
-                    // 初回の行を挿入
-                    selection.TypeText(citation);
+                    // 書式付きセグメントを順に挿入（誌名・巻数をイタリック体に: JPA 3.10.2/3.10.3）
+                    InsertCitationSegments(selection, paper);
+                    selection.Font.Italic = 0;
                     selection.TypeParagraph();
 
-                    // 論文情報が長い場合、2行目以降のインデントのためのフラグを設定
-                    if (citation.Length > 80)  // 80文字を超える場合は2行になると仮定
+                    // ハンギングインデント: 2行目以降を全角2文字（≈21pt）字下げ (JPA 3.10.1(1))
+                    Word.Paragraph? para = null;
+                    try
                     {
-                        Word.Paragraph? para = null;
-                        try
-                        {
-                            // 段落設定を取得
-                            para = selection.Paragraphs.Last;
-
-                            // ハンギングインデントを設定（Windows APIのポイント単位）
-                            // 全角スペース2つ分（約40ポイント）
-                            para.FirstLineIndent = -40f;  // ハンギングインデント
-                            para.LeftIndent = 40f;       // 左インデント
-                        }
-                        finally
-                        {
-                            if (para != null) Marshal.ReleaseComObject(para);
-                        }
+                        para = selection.Paragraphs.Last;
+                        para.LeftIndent = 21f;
+                        para.FirstLineIndent = -21f;
+                    }
+                    finally
+                    {
+                        if (para != null) Marshal.ReleaseComObject(para);
                     }
                 }
 
@@ -281,6 +262,16 @@ namespace PaperManagementApp.Services
             finally
             {
                 if (selection != null) Marshal.ReleaseComObject(selection);
+            }
+        }
+
+        // 書式付きセグメントをWordに挿入（イタリック区間を適用）
+        private void InsertCitationSegments(Word.Selection selection, Paper paper)
+        {
+            foreach (var (text, italic) in paper.GetCitationSegments())
+            {
+                selection.Font.Italic = italic ? 1 : 0;
+                selection.TypeText(text);
             }
         }
 

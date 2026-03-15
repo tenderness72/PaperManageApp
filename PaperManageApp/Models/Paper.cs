@@ -184,6 +184,15 @@ namespace PaperManagementApp.Models
         // JPA形式の参考文献リスト用引用を生成（3.10.2/3.10.3）
         public string GetFullCitation()
         {
+            return string.Concat(GetCitationSegments().Select(s => s.Text));
+        }
+
+        // Word挿入用: 書式付きセグメントのリストを返す（3.10.2/3.10.3）
+        // Item.Italic=true の区間をイタリック体で挿入すること
+        //   英語: 誌名＋巻数 がイタリック (3.10.2(3))
+        //   日本語: 巻数のみイタリック、誌名は立体 (3.10.3(3))
+        public List<(string Text, bool Italic)> GetCitationSegments()
+        {
             string[] authorList = AuthorArray;
             bool isJapanese = HasJapaneseAuthors;
 
@@ -193,22 +202,42 @@ namespace PaperManagementApp.Models
                     ? string.Join("・", authorList.Select(a => FormatAuthorNameJapanese(a)))
                     : FormatEnglishAuthorList(authorList.Select(a => FormatAuthorNameEnglish(a)).ToList());
 
-            return BuildCitation(authorText, isJapanese);
+            string yearStr   = isJapanese ? $"（{Year}）" : $" ({Year})";
+            string vol       = Volume ?? "";
+            string issueStr  = !string.IsNullOrEmpty(Issue) ? $"({Issue})" : "";
+            string pagesStr  = NormalizePageRange(Pages ?? "");
+            string? doiStr   = FormatDOI(DOI);
+
+            var segments = new List<(string Text, bool Italic)>();
+
+            if (isJapanese)
+            {
+                // 日本語: 誌名は立体、巻数のみイタリック
+                segments.Add(($"{authorText}{yearStr}. {Title}　{Journal}, ", false));
+                if (!string.IsNullOrEmpty(vol))
+                    segments.Add((vol, true));                          // 巻数 → イタリック
+                segments.Add(($"{issueStr}, {pagesStr}.", false));
+            }
+            else
+            {
+                // 英語: 誌名・巻数ともにイタリック
+                segments.Add(($"{authorText}{yearStr}. {Title}. ", false));
+                segments.Add((Journal, true));                          // 誌名 → イタリック
+                segments.Add((", ", false));
+                if (!string.IsNullOrEmpty(vol))
+                    segments.Add((vol, true));                          // 巻数 → イタリック
+                segments.Add(($"{issueStr}, {pagesStr}.", false));
+            }
+
+            if (doiStr != null)
+                segments.Add((" " + doiStr, false));
+
+            return segments;
         }
 
-        // 引用文字列を組み立て（日英共通、JPA 3.10.2/3.10.3）
-        // 日本語例: 川上 直秋（2019）. 指先が変える単語の意味　心理学研究, 91(1), 23–33. https://doi.org/xxx
-        // 英語例:   Smith, J. (2020). Title. Journal, 10(2), 1–10. https://doi.org/xxx
-        private string BuildCitation(string authorText, bool isJapanese)
-        {
-            string vol  = !string.IsNullOrEmpty(Issue) ? $"{Volume}({Issue})" : Volume ?? "";
-            string year = isJapanese ? $"（{Year}）" : $" ({Year})";
-            string body = isJapanese
-                ? $"{authorText}{year}. {Title}　{Journal}, {vol}, {Pages}."
-                : $"{authorText}{year}. {Title}. {Journal}, {vol}, {Pages}.";
-            string doi = FormatDOI(DOI);
-            return doi != null ? $"{body} {doi}" : body;
-        }
+        // ページ範囲のハイフンを2分ダッシュに正規化（JPA 3.10.2/3.10.3）
+        private static string NormalizePageRange(string pages)
+            => pages.Replace("-", "–");
 
         // 英語著者リストを JPA 形式で結合（20名以下: A, B, & C / 21名以上: A, ..., Z）
         private string FormatEnglishAuthorList(List<string> authors)
