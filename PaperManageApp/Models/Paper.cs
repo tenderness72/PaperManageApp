@@ -110,8 +110,8 @@ namespace PaperManagementApp.Models
         }
 
         // JPA形式の本文中引用を生成（3.7.1）
-        // 日本語: 山田（2020）/ 山田・鈴木（2020）/ 山田ら（2020）
-        // 英語:   Smith (2020) / Smith & Jones (2020) / Smith et al. (2020)
+        // 日本語: 山田（2020）/ 山田・鈴木（2020）/ 山田他（2020）
+        // 英語:   Smith（2020）/ Smith & Jones（2020）/ Smith et al.（2020）
         public string GetInTextCitation()
         {
             string[] authorList = AuthorArray;
@@ -127,16 +127,16 @@ namespace PaperManagementApp.Models
                 else if (lastNames.Count == 2)
                     return $"{lastNames[0]}・{lastNames[1]}（{Year}）";
                 else
-                    return $"{lastNames[0]}ら（{Year}）";
+                    return $"{lastNames[0]}他（{Year}）";
             }
             else
             {
                 if (lastNames.Count == 1)
-                    return $"{lastNames[0]} ({Year})";
+                    return $"{lastNames[0]}（{Year}）";
                 else if (lastNames.Count == 2)
-                    return $"{lastNames[0]} & {lastNames[1]} ({Year})";
+                    return $"{lastNames[0]} & {lastNames[1]}（{Year}）";
                 else
-                    return $"{lastNames[0]} et al. ({Year})";
+                    return $"{lastNames[0]} et al.（{Year}）";
             }
         }
 
