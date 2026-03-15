@@ -14,20 +14,29 @@ namespace PaperManagementApp.Services
         private Word.Application _wordApp;
         private Word.Document _currentDocument;
 
-        // .NET 8 では Marshal.GetActiveObject が削除されたため oleaut32 を直接 P/Invoke
-        [DllImport("oleaut32.dll", PreserveSig = false)]
-        [return: MarshalAs(UnmanagedType.IDispatch)]
-        private static extern object GetActiveObject(
-            [MarshalAs(UnmanagedType.LPWStr)] string progId);
+        // .NET 8 では Marshal.GetActiveObject が削除されたため P/Invoke で代替
+        // GetActiveObject(oleaut32) は CLSID を要求するため、先に ProgID → CLSID 変換が必要
+        [DllImport("ole32.dll")]
+        private static extern int CLSIDFromProgID(
+            [MarshalAs(UnmanagedType.LPWStr)] string lpszProgID,
+            out Guid lpclsid);
+
+        [DllImport("oleaut32.dll")]
+        private static extern int GetActiveObject(
+            ref Guid rclsid,
+            IntPtr pvReserved,
+            [MarshalAs(UnmanagedType.IUnknown)] out object ppunk);
 
         // 既存の Word インスタンスを ROT から取得（取得できなければ null）
         private static Word.Application? TryAttachToRunningWord()
         {
             try
             {
-                return (Word.Application)GetActiveObject("Word.Application");
+                if (CLSIDFromProgID("Word.Application", out Guid clsid) != 0) return null;
+                if (GetActiveObject(ref clsid, IntPtr.Zero, out object obj) != 0) return null;
+                return obj as Word.Application;
             }
-            catch (COMException)
+            catch
             {
                 return null;
             }
