@@ -516,6 +516,7 @@ namespace PaperManagementApp.Views
         {
             TitleTextBox.Text = paper.Title;
             AuthorsTextBox.Text = paper.Authors;
+            AuthorsKanaTextBox.Text = paper.AuthorsKana;
             YearTextBox.Text = paper.Year.ToString();
             JournalTextBox.Text = paper.Journal;
             VolumeTextBox.Text = paper.Volume;
@@ -639,6 +640,8 @@ namespace PaperManagementApp.Views
                 // 現在の論文データを更新
                 _currentPaper.Title = TitleTextBox.Text.Trim();
                 _currentPaper.Authors = AuthorsTextBox.Text.Trim();
+                _currentPaper.AuthorsKana = string.IsNullOrWhiteSpace(AuthorsKanaTextBox.Text)
+                    ? null : AuthorsKanaTextBox.Text.Trim();
                 _currentPaper.Year = int.Parse(YearTextBox.Text.Trim());
                 _currentPaper.Journal = JournalTextBox.Text.Trim();
                 _currentPaper.Volume = VolumeTextBox.Text.Trim();
@@ -718,12 +721,12 @@ namespace PaperManagementApp.Views
                 string saveMessage = _isEditMode ? "論文情報を更新しました。" : "新しい論文を追加しました。";
                 MessageBoxImage saveIcon = MessageBoxImage.Information;
 
-                if (_currentPaper.HasJapaneseAuthors)
+                if (_currentPaper.HasJapaneseAuthors && string.IsNullOrWhiteSpace(_currentPaper.AuthorsKana))
                 {
-                    saveMessage += "\n\n⚠ 著者名に日本語が含まれています。\n" +
-                                   "参考文献リストのソートでは、読み仮名情報がないため\n" +
-                                   "五十音順ではなくUnicode順で並ぶ場合があります。";
-                    saveIcon = MessageBoxImage.Warning;
+                    saveMessage += "\n\n💡 著者名に日本語が含まれています。\n" +
+                                   "「著者よみがな」を入力すると参考文献リストを\n" +
+                                   "正確に五十音順でソートできます。";
+                    saveIcon = MessageBoxImage.Information;
                 }
 
                 if (_isEditMode)

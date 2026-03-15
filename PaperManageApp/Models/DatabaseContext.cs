@@ -28,6 +28,9 @@ namespace PaperManagementApp.Models
             // Issue 列の追加（既存の場合は duplicate column name エラーを無視）
             try { Database.ExecuteSqlRaw("ALTER TABLE Papers ADD COLUMN Issue TEXT"); } catch { }
 
+            // AuthorsKana 列の追加（著者よみがな）
+            try { Database.ExecuteSqlRaw("ALTER TABLE Papers ADD COLUMN AuthorsKana TEXT"); } catch { }
+
             // bool 型カラムが NULL だと EF Core が GetBoolean() 時に例外を投げるため 0 で埋める
             try { Database.ExecuteSqlRaw("UPDATE Papers SET IsFavorite = 0 WHERE IsFavorite IS NULL"); } catch { }
 

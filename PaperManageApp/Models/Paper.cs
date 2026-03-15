@@ -18,6 +18,9 @@ namespace PaperManagementApp.Models
         [Required]
         public string Authors { get; set; }
 
+        /// <summary>著者よみがな（姓のみ可）。| 区切りで複数著者に対応。ソートキーとして使用。</summary>
+        public string? AuthorsKana { get; set; }
+
         [Required]
         public int Year { get; set; }
 
@@ -86,9 +89,21 @@ namespace PaperManagementApp.Models
         }
 
         // 第1著者の姓（ソートキー用）
+        // よみがなが入力されている場合はよみがなの第1著者姓を使用（五十音順ソート対応）
         [NotMapped]
         public string FirstAuthorSortKey
-            => ExtractLastName(AuthorArray.FirstOrDefault() ?? string.Empty);
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(AuthorsKana))
+                {
+                    char sep = AuthorsKana.Contains('|') ? '|' : '.';
+                    string firstKana = AuthorsKana.Split(sep)[0].Trim();
+                    return ExtractLastName(firstKana);
+                }
+                return ExtractLastName(AuthorArray.FirstOrDefault() ?? string.Empty);
+            }
+        }
 
         // 著者名に日本語文字が含まれるかどうか
         [NotMapped]
