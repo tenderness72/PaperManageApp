@@ -6,8 +6,6 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Word = Microsoft.Office.Interop.Word;
 using System.Windows;
-using System.Reflection;
-using System.IO;
 
 namespace PaperManagementApp.Services
 {
@@ -15,6 +13,25 @@ namespace PaperManagementApp.Services
     {
         private Word.Application _wordApp;
         private Word.Document _currentDocument;
+
+        // .NET 8 では Marshal.GetActiveObject が削除されたため oleaut32 を直接 P/Invoke
+        [DllImport("oleaut32.dll", PreserveSig = false)]
+        [return: MarshalAs(UnmanagedType.IDispatch)]
+        private static extern object GetActiveObject(
+            [MarshalAs(UnmanagedType.LPWStr)] string progId);
+
+        // 既存の Word インスタンスを ROT から取得（取得できなければ null）
+        private static Word.Application? TryAttachToRunningWord()
+        {
+            try
+            {
+                return (Word.Application)GetActiveObject("Word.Application");
+            }
+            catch (COMException)
+            {
+                return null;
+            }
+        }
 
         // Wordが起動中かチェックし、起動中なら既存プロセスにアタッチ
         public bool IsWordRunning()
@@ -24,18 +41,11 @@ namespace PaperManagementApp.Services
                 Process[] processes = Process.GetProcessesByName("WINWORD");
                 if (processes.Length == 0) return false;
 
-                // 既存プロセスに ROT 経由でアタッチ
-                try
-                {
-                    object wordObj = Marshal.GetActiveObject("Word.Application");
-                    _wordApp = (Word.Application)wordObj;
-                    return true;
-                }
-                catch (COMException)
-                {
-                    // プロセスは存在するが ROT 未登録（起動直後など）
-                    return false;
-                }
+                var app = TryAttachToRunningWord();
+                if (app == null) return false;
+
+                _wordApp = app;
+                return true;
             }
             catch (Exception ex)
             {
@@ -51,14 +61,13 @@ namespace PaperManagementApp.Services
             try
             {
                 // ① 既に起動中の Word にアタッチ
-                try
+                var existing = TryAttachToRunningWord();
+                if (existing != null)
                 {
-                    object wordObj = Marshal.GetActiveObject("Word.Application");
-                    _wordApp = (Word.Application)wordObj;
+                    _wordApp = existing;
                     _wordApp.Visible = true;
                     return true;
                 }
-                catch (COMException) { /* Word 未起動 → 新規起動へ */ }
 
                 // ② Word が起動していない場合は新規起動
                 _wordApp = new Word.Application();
