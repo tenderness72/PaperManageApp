@@ -24,42 +24,42 @@ namespace PaperManagementApp.Models
         [Required]
         public string Journal { get; set; }
 
-        public string Volume { get; set; }
+        public string? Volume { get; set; }
 
-        public string Issue { get; set; }
+        public string? Issue { get; set; }
 
-        public string Pages { get; set; }
+        public string? Pages { get; set; }
 
         // 拡張情報
-        public string DOI { get; set; }
+        public string? DOI { get; set; }
 
-        public string Keywords { get; set; }
+        public string? Keywords { get; set; }
 
-        public string FilePath { get; set; }
+        public string? FilePath { get; set; }
 
         public bool IsFavorite { get; set; }
 
         // 追加メタデータ
-        public string PaperType { get; set; }  // 論文タイプ（研究論文/症例報告など）
+        public string? PaperType { get; set; }  // 論文タイプ（研究論文/症例報告など）
 
-        public string ClinicalArea { get; set; }  // 臨床領域（カンマ区切り）
+        public string? ClinicalArea { get; set; }  // 臨床領域（カンマ区切り）
 
-        public string Approach { get; set; }  // 治療アプローチ（カンマ区切り）
+        public string? Approach { get; set; }  // 治療アプローチ（カンマ区切り）
 
-        public string Tags { get; set; }  // タグ（カンマ区切り）
+        public string? Tags { get; set; }  // タグ（カンマ区切り）
 
         // メモ系（指定された論文セクション）
-        public string Abstract { get; set; }  // 概要
+        public string? Abstract { get; set; }  // 概要
 
-        public string ProblemAndPurpose { get; set; }  // 問題と目的
+        public string? ProblemAndPurpose { get; set; }  // 問題と目的
 
-        public string Method { get; set; }  // 方法
+        public string? Method { get; set; }  // 方法
 
-        public string Results { get; set; }  // 結果
+        public string? Results { get; set; }  // 結果
 
-        public string Discussion { get; set; }  // 考察
+        public string? Discussion { get; set; }  // 考察
 
-        public string AdditionalNotes { get; set; }  // その他メモ
+        public string? AdditionalNotes { get; set; }  // その他メモ
 
         // 管理用
         public DateTime CreatedAt { get; set; }

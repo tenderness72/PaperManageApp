@@ -133,7 +133,7 @@ namespace PaperManagementApp.Views
                 {
                     bool matchesYear = _selectedYear == null || paper.Year == _selectedYear;
                     bool matchesJournal = string.IsNullOrEmpty(_selectedJournal) || paper.Journal.Contains(_selectedJournal);
-                    bool matchesClinicalArea = string.IsNullOrEmpty(_selectedClinicalArea) || paper.ClinicalArea.Contains(_selectedClinicalArea);
+                    bool matchesClinicalArea = string.IsNullOrEmpty(_selectedClinicalArea) || paper.ClinicalArea?.Contains(_selectedClinicalArea) == true;
                     bool matchesTag = string.IsNullOrEmpty(_selectedTag) ||
                                       paper.TagArray.Any(t => t.Trim() == _selectedTag);
 
