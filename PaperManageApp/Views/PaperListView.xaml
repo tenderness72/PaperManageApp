@@ -51,11 +51,20 @@
                            Foreground="#666"
                            Margin="0,0,15,0"/>
                 <Button x:Name="BulkDeleteButton"
-                        Content="選択した論文を削除"
+                        Content="削除"
                         Click="BulkDeleteButton_Click"
                         IsEnabled="False"
-                        Padding="10,4"
+                        Padding="12,4"
+                        Margin="0,0,6,0"
                         Background="#e74c3c"
+                        Foreground="White"
+                        BorderThickness="0"/>
+                <Button x:Name="BulkFavoriteButton"
+                        Content="お気に入り切替"
+                        Click="BulkFavoriteButton_Click"
+                        IsEnabled="False"
+                        Padding="12,4"
+                        Background="#f39c12"
                         Foreground="White"
                         BorderThickness="0"/>
             </StackPanel>
@@ -87,23 +96,38 @@
                             <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       Click="SelectionCheckBox_Click"
                                       HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"
-                                      ToolTip="選択"/>
+                                      VerticalAlignment="Center"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <!-- お気に入りチェックボックス列 -->
-                <DataGridTemplateColumn Width="30">
+                <!-- お気に入りインジケータ（クリックで個別切替） -->
+                <DataGridTemplateColumn Width="35">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox IsChecked="{Binding IsFavorite, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      Checked="FavoriteCheckBox_Checked"
-                                      Unchecked="FavoriteCheckBox_Unchecked"
-                                      Tag="{Binding Id}"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"
-                                      ToolTip="お気に入り"/>
+                            <Button Click="StarButton_Click"
+                                    Tag="{Binding Id}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Cursor="Hand"
+                                    ToolTip="お気に入り切替">
+                                <TextBlock FontSize="15" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="☆"/>
+                                            <Setter Property="Foreground" Value="#ccc"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                    <Setter Property="Text" Value="★"/>
+                                                    <Setter Property="Foreground" Value="#f39c12"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Button>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

@@ -237,7 +237,9 @@ namespace PaperManagementApp.Views
             int count = _displayedPapers.Count(p => p.IsSelected);
             SelectionCountText.Text = $"{count}件選択中";
             BulkDeleteButton.IsEnabled = count > 0;
-            BulkDeleteButton.Content = count > 0 ? $"選択した論文を削除（{count}件）" : "選択した論文を削除";
+            BulkDeleteButton.Content = count > 0 ? $"削除（{count}件）" : "削除";
+            BulkFavoriteButton.IsEnabled = count > 0;
+            BulkFavoriteButton.Content = count > 0 ? $"お気に入り切替（{count}件）" : "お気に入り切替";
 
             bool allSelected  = count == _displayedPapers.Count && count > 0;
             bool noneSelected = count == 0;
@@ -314,46 +316,46 @@ namespace PaperManagementApp.Views
             }
         }
 
-        // お気に入りチェックボックス変更
-        private async void FavoriteCheckBox_Checked(object sender, RoutedEventArgs e)
+        // ★ボタン：個別お気に入り切替
+        private async void StarButton_Click(object sender, RoutedEventArgs e)
         {
-            var checkbox = sender as CheckBox;
-            if (checkbox != null && checkbox.Tag != null)
-            {
-                int paperId = Convert.ToInt32(checkbox.Tag);
-                await UpdateFavoriteStatusAsync(paperId, true);
-            }
-        }
-
-        private async void FavoriteCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            var checkbox = sender as CheckBox;
-            if (checkbox != null && checkbox.Tag != null)
-            {
-                int paperId = Convert.ToInt32(checkbox.Tag);
-                await UpdateFavoriteStatusAsync(paperId, false);
-            }
-        }
-
-        // お気に入り状態の更新
-        private async Task UpdateFavoriteStatusAsync(int paperId, bool isFavorite)
-        {
+            var button = sender as Button;
+            if (button?.Tag == null) return;
+            int paperId = Convert.ToInt32(button.Tag);
             try
             {
-                var paper = await _paperService.GetPaperByIdAsync(paperId);
-
+                await _paperService.ToggleFavoriteAsync(paperId);
+                // お気に入りのみ表示中に解除した場合はリロード
+                var paper = _allPapers?.FirstOrDefault(p => p.Id == paperId);
                 if (paper != null)
                 {
-                    paper.IsFavorite = isFavorite;
-                    await _paperService.UpdatePaperAsync(paper);
-
-                    // お気に入りのみ表示モードでお気に入りを解除した場合はリストから削除
-                    if (_showFavoritesOnly && !isFavorite)
+                    paper.IsFavorite = !paper.IsFavorite;
+                    if (_showFavoritesOnly && !paper.IsFavorite)
                     {
                         await LoadPapersAsync();
                         await ApplyFiltersAndSearchAsync();
+                        return;
                     }
                 }
+                PapersDataGrid.Items.Refresh();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"お気に入り状態の更新中にエラーが発生しました: {ex.Message}",
+                    "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // 一括お気に入り切替ボタン
+        private async void BulkFavoriteButton_Click(object sender, RoutedEventArgs e)
+        {
+            var targets = _displayedPapers?.Where(p => p.IsSelected).ToList();
+            if (targets == null || targets.Count == 0) return;
+            try
+            {
+                await _paperService.ToggleFavoritesAsync(targets.Select(p => p.Id));
+                await LoadPapersAsync();
+                await ApplyFiltersAndSearchAsync();
             }
             catch (Exception ex)
             {

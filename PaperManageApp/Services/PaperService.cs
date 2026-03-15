@@ -225,6 +225,19 @@ namespace PaperManagementApp.Services
             return true;
         }
 
+        // 複数論文の一括お気に入り切替
+        public async Task ToggleFavoritesAsync(IEnumerable<int> paperIds)
+        {
+            foreach (int id in paperIds)
+            {
+                var paper = await _dbContext.Papers.FindAsync(id);
+                if (paper == null) continue;
+                paper.IsFavorite = !paper.IsFavorite;
+                paper.UpdatedAt = DateTime.Now;
+            }
+            await _dbContext.SaveChangesAsync();
+        }
+
         // 複数論文の一括削除
         public async Task<int> DeletePapersAsync(IEnumerable<int> paperIds)
         {
