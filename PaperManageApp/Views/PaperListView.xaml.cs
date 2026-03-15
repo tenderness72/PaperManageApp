@@ -61,6 +61,7 @@ namespace PaperManagementApp.Views
 
                 _displayedPapers = new List<Paper>(_allPapers);
                 PapersDataGrid.ItemsSource = _displayedPapers;
+                UpdateSelectionUI();
             }
             catch (Exception ex)
             {
@@ -145,6 +146,7 @@ namespace PaperManagementApp.Views
 
                 PapersDataGrid.ItemsSource = null;
                 PapersDataGrid.ItemsSource = _displayedPapers;
+                UpdateSelectionUI();
             }
             catch (Exception ex)
             {
@@ -206,6 +208,66 @@ namespace PaperManagementApp.Views
             {
                 int paperId = Convert.ToInt32(button.Tag);
                 NavigationService.Navigate(new PaperEditView(paperId));
+            }
+        }
+
+        // ---- 選択チェックボックス・一括削除 ----
+
+        // 行の選択チェックボックスが変更されたとき
+        private void SelectionCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSelectionUI();
+        }
+
+        // 一括操作バーの「すべて選択」チェックボックス
+        private void SelectAllCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            bool select = SelectAllCheckBox.IsChecked == true;
+            if (_displayedPapers == null) return;
+            foreach (var p in _displayedPapers)
+                p.IsSelected = select;
+            PapersDataGrid.Items.Refresh();
+            UpdateSelectionUI();
+        }
+
+        // 選択状態をUIに反映（カウント・ボタン有効化・SelectAll状態）
+        private void UpdateSelectionUI()
+        {
+            if (_displayedPapers == null) return;
+            int count = _displayedPapers.Count(p => p.IsSelected);
+            SelectionCountText.Text = $"{count}件選択中";
+            BulkDeleteButton.IsEnabled = count > 0;
+            BulkDeleteButton.Content = count > 0 ? $"選択した論文を削除（{count}件）" : "選択した論文を削除";
+
+            bool allSelected  = count == _displayedPapers.Count && count > 0;
+            bool noneSelected = count == 0;
+            SelectAllCheckBox.IsChecked = allSelected ? true : noneSelected ? false : null;
+        }
+
+        // 一括削除ボタン
+        private async void BulkDeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            var targets = _displayedPapers?.Where(p => p.IsSelected).ToList();
+            if (targets == null || targets.Count == 0) return;
+
+            var result = MessageBox.Show(
+                $"{targets.Count}件の論文を削除してもよろしいですか？\nこの操作は取り消せません。",
+                "一括削除の確認", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            try
+            {
+                int deleted = await _paperService.DeletePapersAsync(targets.Select(p => p.Id));
+                MessageBox.Show($"{deleted}件の論文を削除しました。", "削除完了",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                await LoadPapersAsync();
+                await ApplyFiltersAndSearchAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"削除中にエラーが発生しました: {ex.Message}", "エラー",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

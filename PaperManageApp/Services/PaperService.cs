@@ -225,6 +225,32 @@ namespace PaperManagementApp.Services
             return true;
         }
 
+        // 複数論文の一括削除
+        public async Task<int> DeletePapersAsync(IEnumerable<int> paperIds)
+        {
+            int deleted = 0;
+            foreach (int id in paperIds)
+            {
+                var paper = await _dbContext.Papers.FindAsync(id);
+                if (paper == null) continue;
+
+                if (!string.IsNullOrEmpty(paper.FilePath) && File.Exists(paper.FilePath))
+                {
+                    try { File.Delete(paper.FilePath); }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"PDFファイルの削除に失敗しました: {ex.Message}");
+                    }
+                }
+
+                _dbContext.Papers.Remove(paper);
+                deleted++;
+            }
+            if (deleted > 0)
+                await _dbContext.SaveChangesAsync();
+            return deleted;
+        }
+
         // 論文メモの追加
         public async Task<PaperNote> AddPaperNoteAsync(PaperNote note)
         {

@@ -72,6 +72,10 @@ namespace PaperManagementApp.Models
         // ナビゲーションプロパティ
         public virtual ICollection<PaperNote> Notes { get; set; }
 
+        // 一覧画面での選択状態（UI用、DBに保存しない）
+        [NotMapped]
+        public bool IsSelected { get; set; }
+
         // 著者を配列として取得
         // 新形式: | 区切り、旧形式: . 区切り（後方互換）
         [NotMapped]
