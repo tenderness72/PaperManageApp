@@ -23,33 +23,17 @@ namespace PaperManagementApp.Models
         }
 
         // 既存DBに不足カラムを追加する簡易マイグレーション
+        // ExecuteSqlRaw で EF Core の接続管理に委ねる。
+        // Issue 列が既に存在する場合は SQLite が "duplicate column name" エラーを返すが無視する。
         private void MigrateColumns()
         {
             try
             {
-                // Papers.Issue カラムが存在しない場合に追加
-                var connection = Database.GetDbConnection();
-                connection.Open();
-                using var cmd = connection.CreateCommand();
-                cmd.CommandText = "PRAGMA table_info(Papers)";
-                var columns = new System.Collections.Generic.HashSet<string>();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                        columns.Add(reader.GetString(1)); // column name
-                }
-
-                if (!columns.Contains("Issue"))
-                {
-                    cmd.CommandText = "ALTER TABLE Papers ADD COLUMN Issue TEXT";
-                    cmd.ExecuteNonQuery();
-                }
-
-                connection.Close();
+                Database.ExecuteSqlRaw("ALTER TABLE Papers ADD COLUMN Issue TEXT");
             }
             catch
             {
-                // マイグレーション失敗はアプリ起動を妨げない
+                // Issue 列が既に存在する場合のエラーは正常（無視）
             }
         }
 
