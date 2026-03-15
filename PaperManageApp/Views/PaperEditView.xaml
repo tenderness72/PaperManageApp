@@ -58,6 +58,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="150"/>
@@ -80,17 +81,21 @@
                             <TextBlock Grid.Row="3" Grid.Column="0" Text="雑誌名 *" VerticalAlignment="Center"/>
                             <TextBox Grid.Row="3" Grid.Column="1" x:Name="JournalTextBox" Margin="0,5" Padding="5"/>
 
-                            <!-- 巻・号 -->
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="巻・号" VerticalAlignment="Center"/>
+                            <!-- 巻 -->
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="巻" VerticalAlignment="Center"/>
                             <TextBox Grid.Row="4" Grid.Column="1" x:Name="VolumeTextBox" Margin="0,5" Padding="5"/>
 
+                            <!-- 号 -->
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="号" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="5" Grid.Column="1" x:Name="IssueTextBox" Margin="0,5" Padding="5"/>
+
                             <!-- ページ -->
-                            <TextBlock Grid.Row="5" Grid.Column="0" Text="ページ" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="5" Grid.Column="1" x:Name="PagesTextBox" Margin="0,5" Padding="5"/>
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="ページ" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="6" Grid.Column="1" x:Name="PagesTextBox" Margin="0,5" Padding="5"/>
 
                             <!-- DOI -->
-                            <TextBlock Grid.Row="6" Grid.Column="0" Text="DOI" VerticalAlignment="Center"/>
-                            <Grid Grid.Row="6" Grid.Column="1" Margin="0,5">
+                            <TextBlock Grid.Row="7" Grid.Column="0" Text="DOI" VerticalAlignment="Center"/>
+                            <Grid Grid.Row="7" Grid.Column="1" Margin="0,5">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -104,12 +109,12 @@
                             </Grid>
 
                             <!-- お気に入り -->
-                            <TextBlock Grid.Row="7" Grid.Column="0" Text="お気に入り" VerticalAlignment="Center"/>
-                            <CheckBox Grid.Row="7" Grid.Column="1" x:Name="FavoriteCheckBox" Margin="0,5" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="8" Grid.Column="0" Text="お気に入り" VerticalAlignment="Center"/>
+                            <CheckBox Grid.Row="8" Grid.Column="1" x:Name="FavoriteCheckBox" Margin="0,5" VerticalAlignment="Center"/>
 
                             <!-- PDFファイル -->
-                            <TextBlock Grid.Row="8" Grid.Column="0" Text="PDFファイル" VerticalAlignment="Center"/>
-                            <Grid Grid.Row="8" Grid.Column="1" Margin="0,5">
+                            <TextBlock Grid.Row="9" Grid.Column="0" Text="PDFファイル" VerticalAlignment="Center"/>
+                            <Grid Grid.Row="9" Grid.Column="1" Margin="0,5">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>

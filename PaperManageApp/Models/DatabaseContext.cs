@@ -18,6 +18,39 @@ namespace PaperManagementApp.Models
         {
             // データベースファイルが存在しない場合は作成
             Database.EnsureCreated();
+            // 新規カラムのマイグレーション（EnsureCreated では自動追加されないため）
+            MigrateColumns();
+        }
+
+        // 既存DBに不足カラムを追加する簡易マイグレーション
+        private void MigrateColumns()
+        {
+            try
+            {
+                // Papers.Issue カラムが存在しない場合に追加
+                var connection = Database.GetDbConnection();
+                connection.Open();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = "PRAGMA table_info(Papers)";
+                var columns = new System.Collections.Generic.HashSet<string>();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                        columns.Add(reader.GetString(1)); // column name
+                }
+
+                if (!columns.Contains("Issue"))
+                {
+                    cmd.CommandText = "ALTER TABLE Papers ADD COLUMN Issue TEXT";
+                    cmd.ExecuteNonQuery();
+                }
+
+                connection.Close();
+            }
+            catch
+            {
+                // マイグレーション失敗はアプリ起動を妨げない
+            }
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

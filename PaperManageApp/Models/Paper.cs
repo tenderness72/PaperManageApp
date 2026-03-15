@@ -26,6 +26,8 @@ namespace PaperManagementApp.Models
 
         public string Volume { get; set; }
 
+        public string Issue { get; set; }
+
         public string Pages { get; set; }
 
         // 拡張情報
@@ -134,65 +136,52 @@ namespace PaperManagementApp.Models
             Notes = new List<PaperNote>();
         }
 
-        // APA形式の引用を生成（本文中の引用用）
+        // JPA形式の本文中引用を生成（3.7.1）
+        // 日本語: 山田（2020）/ 山田・鈴木（2020）/ 山田ら（2020）
+        // 英語:   Smith (2020) / Smith & Jones (2020) / Smith et al. (2020)
         public string GetInTextCitation()
         {
             string[] authorList = AuthorArray;
+            if (authorList.Length == 0) return "著者不明";
 
-            if (authorList.Length == 0)
-            {
-                return "著者不明";
-            }
+            bool isJapanese = HasJapaneseAuthors;
+            List<string> lastNames = authorList.Select(a => ExtractLastName(a)).ToList();
 
-            // 各著者から姓のみを抽出
-            List<string> lastNames = new List<string>();
-            foreach (string authorName in authorList)
+            if (isJapanese)
             {
-                lastNames.Add(ExtractLastName(authorName));
-            }
-
-            // 引用の生成
-            if (lastNames.Count == 1)
-            {
-                return $"{lastNames[0]}({Year})";
-            }
-            else if (lastNames.Count == 2)
-            {
-                return $"{lastNames[0]}・{lastNames[1]}({Year})";
+                if (lastNames.Count == 1)
+                    return $"{lastNames[0]}（{Year}）";
+                else if (lastNames.Count == 2)
+                    return $"{lastNames[0]}・{lastNames[1]}（{Year}）";
+                else
+                    return $"{lastNames[0]}ら（{Year}）";
             }
             else
             {
-                return $"{lastNames[0]}ら({Year})";
+                if (lastNames.Count == 1)
+                    return $"{lastNames[0]} ({Year})";
+                else if (lastNames.Count == 2)
+                    return $"{lastNames[0]} & {lastNames[1]} ({Year})";
+                else
+                    return $"{lastNames[0]} et al. ({Year})";
             }
         }
 
         // 著者名から姓を抽出するヘルパーメソッド
         private string ExtractLastName(string authorName)
         {
-            // カンマが含まれている場合（例：「山本,淳一」）
+            // カンマが含まれている場合（例：「山本,淳一」「Smith,John」）
             if (authorName.Contains(","))
-            {
                 return authorName.Split(',')[0].Trim();
-            }
 
-            // カンマがない場合は日本語名かどうかを確認
-            if (IsJapaneseName(authorName))
-            {
-                // 日本語名の場合、より洗練された姓の抽出が必要かもしれませんが、
-                // ここでは簡単のため、最初の2文字を姓と見なします
-                if (authorName.Length >= 2)
-                {
-                    return authorName.Substring(0, 2);
-                }
-            }
-
-            // スペースで区切られている場合（例：「山本 淳一」）
+            // スペースで区切られている場合（例：「山本 淳一」「Smith John」「長谷川 裕」）
             if (authorName.Contains(" "))
-            {
                 return authorName.Split(' ')[0].Trim();
-            }
 
-            // その他の場合はそのまま返す
+            // セパレータなし日本語名の場合は先頭2文字を姓と見なす
+            if (IsJapaneseName(authorName) && authorName.Length >= 2)
+                return authorName.Substring(0, 2);
+
             return authorName;
         }
 
@@ -204,53 +193,119 @@ namespace PaperManagementApp.Models
                                 (c >= '\u4E00' && c <= '\u9FFF'));   // 漢字
         }
 
-        // 参考文献リスト用の完全な引用情報を生成
+        // JPA形式の参考文献リスト用引用を生成（3.10.2/3.10.3）
         public string GetFullCitation()
         {
             string[] authorList = AuthorArray;
+            bool isJapanese = HasJapaneseAuthors;
 
-            if (authorList.Length == 0)
-            {
-                return $"著者不明 ({Year}). {Title} {Journal}, {Volume}, {Pages}";
-            }
+            string authorText = authorList.Length == 0
+                ? "著者不明"
+                : isJapanese
+                    ? string.Join("・", authorList.Select(a => FormatAuthorNameJapanese(a)))
+                    : FormatEnglishAuthorList(authorList.Select(a => FormatAuthorNameEnglish(a)).ToList());
 
-            // 著者名を整形（フルネームを使用）
-            List<string> formattedAuthors = new List<string>();
-            foreach (string authorName in authorList)
-            {
-                formattedAuthors.Add(FormatAuthorName(authorName));
-            }
+            return isJapanese
+                ? BuildJapaneseCitation(authorText)
+                : BuildEnglishCitation(authorText);
+        }
 
-            string authorText = string.Join("・", formattedAuthors);
+        // 日本語文献の引用文字列を組み立て（JPA 3.10.3）
+        // 例: 川上 直秋（2019）. 指先が変える単語の意味　心理学研究, 91(1), 23–33. https://doi.org/xxx
+        private string BuildJapaneseCitation(string authorText)
+        {
+            string volStr = !string.IsNullOrEmpty(Issue)
+                ? $"{Volume}({Issue})"
+                : Volume ?? "";
 
-            // 文献情報を作成
-            string citation = $"{authorText} ({Year}). {Title} {Journal}, {Volume}, {Pages}";
+            string citation = $"{authorText}（{Year}）. {Title}　{Journal}, {volStr}, {Pages}.";
 
-            // "and" が含まれている場合、それを削除
-            if (citation.Contains(" and "))
-            {
-                citation = citation.Replace(" and ", " ");
-            }
+            string doi = FormatDOI(DOI);
+            if (doi != null) citation += $" {doi}";
 
             return citation;
         }
 
-        // 参考文献用に著者名をフォーマットするヘルパーメソッド
-        private string FormatAuthorName(string authorName)
+        // 英語文献の引用文字列を組み立て（JPA 3.10.2）
+        // 例: Smith, J. (2020). Title. Journal, 10(2), 1–10. https://doi.org/xxx
+        private string BuildEnglishCitation(string authorText)
         {
-            // カンマが含まれている場合（例：「山本,淳一」）
+            string volStr = !string.IsNullOrEmpty(Issue)
+                ? $"{Volume}({Issue})"
+                : Volume ?? "";
+
+            string citation = $"{authorText} ({Year}). {Title}. {Journal}, {volStr}, {Pages}.";
+
+            string doi = FormatDOI(DOI);
+            if (doi != null) citation += $" {doi}";
+
+            return citation;
+        }
+
+        // 英語著者リストを JPA 形式で結合（20名以下: A, B, & C / 21名以上: A, ..., Z）
+        private string FormatEnglishAuthorList(List<string> authors)
+        {
+            if (authors.Count == 1) return authors[0];
+            if (authors.Count <= 20)
+                return string.Join(", ", authors.Take(authors.Count - 1)) + ", & " + authors.Last();
+            // 21名以上: 第1〜19著者 + ... + 最終著者
+            return string.Join(", ", authors.Take(19)) + ", ... " + authors.Last();
+        }
+
+        // 参考文献用・日本語著者名のフォーマット（姓 名 形式）
+        private string FormatAuthorNameJapanese(string authorName)
+        {
             if (authorName.Contains(","))
             {
-                string[] parts = authorName.Split(',');
-                if (parts.Length >= 2)
-                {
-                    // 日本語形式で「姓 名」として返す
-                    return $"{parts[0].Trim()} {parts[1].Trim()}";
-                }
+                var parts = authorName.Split(',');
+                return $"{parts[0].Trim()} {parts[1].Trim()}";
+            }
+            return authorName;
+        }
+
+        // 参考文献用・英語著者名のフォーマット（姓, イニシャル. 形式）
+        // 例: "Smith, John Michael" → "Smith, J. M."
+        private string FormatAuthorNameEnglish(string authorName)
+        {
+            string surname, givenNames;
+
+            if (authorName.Contains(","))
+            {
+                var parts = authorName.Split(new[] { ',' }, 2);
+                surname = parts[0].Trim();
+                givenNames = parts[1].Trim();
+            }
+            else if (authorName.Contains(" "))
+            {
+                var parts = authorName.Split(new[] { ' ' }, 2);
+                surname = parts[0].Trim();
+                givenNames = parts[1].Trim();
+            }
+            else
+            {
+                return authorName;
             }
 
-            // その他の場合はそのまま返す
-            return authorName;
+            if (string.IsNullOrEmpty(givenNames)) return surname;
+
+            // イニシャル化（"John Michael" → "J. M."）
+            string initials = string.Join(" ", givenNames.Split(' ')
+                .Where(n => !string.IsNullOrEmpty(n))
+                .Select(n => n[0] + "."));
+
+            return $"{surname}, {initials}";
+        }
+
+        // DOIを正規化して https://doi.org/xxx 形式で返す
+        private string FormatDOI(string doi)
+        {
+            if (string.IsNullOrEmpty(doi)) return null;
+            string id = doi
+                .Replace("https://doi.org/", "")
+                .Replace("http://doi.org/", "")
+                .Replace("https://dx.doi.org/", "")
+                .Trim();
+            return $"https://doi.org/{id}";
         }
     }
 }

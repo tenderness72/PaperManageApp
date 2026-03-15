@@ -223,6 +223,7 @@ namespace PaperManagementApp.Services
                           ?? entry.Element(Atom + "material_title")?.Element(Atom + "en")?.Value
                           ?? string.Empty;
             string volume = entry.Element(Prism + "volume")?.Value ?? string.Empty;
+            string issue = entry.Element(Prism + "number")?.Value ?? string.Empty;
             string startPage = entry.Element(Prism + "startingPage")?.Value ?? string.Empty;
             string endPage = entry.Element(Prism + "endingPage")?.Value ?? string.Empty;
             string description = entry.Element(Dc + "description")?.Value ?? string.Empty;
@@ -235,6 +236,7 @@ namespace PaperManagementApp.Services
                 Year = year,
                 Journal = journal,
                 Volume = volume,
+                Issue = issue,
                 Pages = BuildPages(startPage, endPage),
                 Abstract = description,
                 PaperType = "研究論文"

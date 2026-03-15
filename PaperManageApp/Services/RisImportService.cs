@@ -142,19 +142,11 @@ namespace PaperManagementApp.Services
                 paper.Journal = risData["JA"];
             else if (risData.ContainsKey("J1"))
                 paper.Journal = risData["J1"];
-            // 巻・号
-            string volume = string.Empty;
-            string issue = string.Empty;
+            // 巻・号（それぞれ独立したフィールドに格納）
             if (risData.ContainsKey("VL"))
-                volume = risData["VL"];
+                paper.Volume = risData["VL"];
             if (risData.ContainsKey("IS"))
-                issue = risData["IS"];
-            if (!string.IsNullOrEmpty(volume) && !string.IsNullOrEmpty(issue))
-                paper.Volume = $"{volume}({issue})";
-            else if (!string.IsNullOrEmpty(volume))
-                paper.Volume = volume;
-            else if (!string.IsNullOrEmpty(issue))
-                paper.Volume = $"({issue})";
+                paper.Issue = risData["IS"];
             // ページ
             string startPage = string.Empty;
             string endPage = string.Empty;

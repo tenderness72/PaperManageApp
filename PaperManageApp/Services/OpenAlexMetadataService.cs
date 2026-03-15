@@ -94,6 +94,7 @@ namespace PaperManagementApp.Services
             string authors = BuildAuthors(work);
             string journal = BuildJournal(work);
             string volume = BuildStringField(work, "biblio", "volume");
+            string issue = BuildStringField(work, "biblio", "issue");
             string firstPage = BuildStringField(work, "biblio", "first_page");
             string lastPage = BuildStringField(work, "biblio", "last_page");
             string pages = string.IsNullOrWhiteSpace(firstPage) ? string.Empty
@@ -111,6 +112,7 @@ namespace PaperManagementApp.Services
                 Year = year,
                 Journal = journal,
                 Volume = volume,
+                Issue = issue,
                 Pages = pages,
                 Abstract = abstrakt,
                 Keywords = keywords,

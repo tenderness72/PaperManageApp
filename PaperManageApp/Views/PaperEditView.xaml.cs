@@ -322,6 +322,11 @@ namespace PaperManagementApp.Views
                 VolumeTextBox.Text = fetchedPaper.Volume;
             }
 
+            if (!string.IsNullOrWhiteSpace(fetchedPaper.Issue))
+            {
+                IssueTextBox.Text = fetchedPaper.Issue;
+            }
+
             if (!string.IsNullOrWhiteSpace(fetchedPaper.Pages))
             {
                 PagesTextBox.Text = fetchedPaper.Pages;
@@ -514,6 +519,7 @@ namespace PaperManagementApp.Views
             YearTextBox.Text = paper.Year.ToString();
             JournalTextBox.Text = paper.Journal;
             VolumeTextBox.Text = paper.Volume;
+            IssueTextBox.Text = paper.Issue;
             PagesTextBox.Text = paper.Pages;
             DoiTextBox.Text = paper.DOI;
             FavoriteCheckBox.IsChecked = paper.IsFavorite;
@@ -636,6 +642,7 @@ namespace PaperManagementApp.Views
                 _currentPaper.Year = int.Parse(YearTextBox.Text.Trim());
                 _currentPaper.Journal = JournalTextBox.Text.Trim();
                 _currentPaper.Volume = VolumeTextBox.Text.Trim();
+                _currentPaper.Issue = IssueTextBox.Text.Trim();
                 _currentPaper.Pages = PagesTextBox.Text.Trim();
                 _currentPaper.DOI = DoiTextBox.Text.Trim();
                 _currentPaper.IsFavorite = FavoriteCheckBox.IsChecked ?? false;
