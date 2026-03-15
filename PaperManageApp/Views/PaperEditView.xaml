@@ -72,7 +72,8 @@
 
                             <!-- 著者 -->
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="著者 *" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="AuthorsTextBox" Margin="0,5" Padding="5"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="AuthorsTextBox" Margin="0,5" Padding="5"
+                                     ToolTip="複数著者は・（中黒）で区切ってください。&#x0a;例）山田太郎・鈴木花子・田中次郎&#x0a;英語例）Smith, J. A.・Jones, M. B."/>
 
                             <!-- 著者よみがな -->
                             <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center">
@@ -81,7 +82,7 @@
                                 <Run Text="（ソート用）" FontSize="10" Foreground="#888"/>
                             </TextBlock>
                             <TextBox Grid.Row="2" Grid.Column="1" x:Name="AuthorsKanaTextBox" Margin="0,5" Padding="5"
-                                     ToolTip="参考文献リストを五十音順にソートするために使用します。&#x0a;著者と同じ区切り文字（|）で複数著者を入力してください。&#x0a;例）やまだ たろう|すずき はなこ"/>
+                                     ToolTip="参考文献リストを五十音順にソートするために使用します。&#x0a;著者と同じ・（中黒）で区切ってください。&#x0a;例）やまだ たろう・すずき はなこ"/>
 
                             <!-- 出版年 -->
                             <TextBlock Grid.Row="3" Grid.Column="0" Text="出版年 *" VerticalAlignment="Center"/>
