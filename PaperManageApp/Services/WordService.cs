@@ -16,94 +16,59 @@ namespace PaperManagementApp.Services
         private Word.Application _wordApp;
         private Word.Document _currentDocument;
 
-        // Wordが起動しているかチェック - 修正版
+        // Wordが起動中かチェックし、起動中なら既存プロセスにアタッチ
         public bool IsWordRunning()
         {
             try
             {
-                // システムプロセスからWordが実行中かチェック
                 Process[] processes = Process.GetProcessesByName("WINWORD");
-                if (processes.Length > 0)
+                if (processes.Length == 0) return false;
+
+                // 既存プロセスに ROT 経由でアタッチ
+                try
                 {
-                    try
-                    {
-                        // 既存のWORDプロセスが見つかったので、新しいインスタンスを作成
-                        _wordApp = new Word.Application();
-                        _wordApp.Visible = true;
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"既存のWord接続に失敗しました: {ex.Message}");
-                        return false;
-                    }
+                    object wordObj = Marshal.GetActiveObject("Word.Application");
+                    _wordApp = (Word.Application)wordObj;
+                    return true;
                 }
-                return false;
+                catch (COMException)
+                {
+                    // プロセスは存在するが ROT 未登録（起動直後など）
+                    return false;
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Wordプロセスの検出に失敗しました: {ex.Message}");
+                MessageBox.Show($"Wordプロセスの検出に失敗しました: {ex.Message}",
+                    "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
         }
 
-        // Wordを起動（強化版）
+        // Wordに接続（既存プロセス優先、未起動なら新規起動）
         public bool StartWord()
         {
             try
             {
-                // Office相互運用アセンブリの情報をログに出力
+                // ① 既に起動中の Word にアタッチ
                 try
                 {
-                    var wordAppType = typeof(Microsoft.Office.Interop.Word.Application);
-                    var assembly = wordAppType.Assembly;
-                    MessageBox.Show($"Word Interop Assembly: {assembly.FullName}");
+                    object wordObj = Marshal.GetActiveObject("Word.Application");
+                    _wordApp = (Word.Application)wordObj;
+                    _wordApp.Visible = true;
+                    return true;
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Word Interopアセンブリの情報取得に失敗: {ex.Message}");
-                }
+                catch (COMException) { /* Word 未起動 → 新規起動へ */ }
 
-                // 明示的な Late Binding の利用（PIA依存を減らす）
-                try
-                {
-                    Type officeType = Type.GetTypeFromProgID("Word.Application");
-                    if (officeType != null)
-                    {
-                        object wordObj = Activator.CreateInstance(officeType);
-                        _wordApp = (Word.Application)wordObj;
-                        _wordApp.Visible = true;
-                        return true;
-                    }
-                    else
-                    {
-                        // 通常の方法でWordを起動
-                        _wordApp = new Word.Application();
-                        _wordApp.Visible = true;
-                        return true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Late Bindingでの起動に失敗しました: {ex.Message}");
-
-                    // 最後の手段：通常の方法でWordを起動
-                    try
-                    {
-                        _wordApp = new Word.Application();
-                        _wordApp.Visible = true;
-                        return true;
-                    }
-                    catch (Exception ex2)
-                    {
-                        MessageBox.Show($"Wordの起動に失敗しました: {ex2.Message}\n\n{ex2.StackTrace}");
-                        return false;
-                    }
-                }
+                // ② Word が起動していない場合は新規起動
+                _wordApp = new Word.Application();
+                _wordApp.Visible = true;
+                return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Wordの起動に失敗しました: {ex.Message}\n\n{ex.StackTrace}");
+                MessageBox.Show($"Wordの起動に失敗しました: {ex.Message}",
+                    "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
         }
