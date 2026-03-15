@@ -88,45 +88,18 @@ namespace PaperManagementApp.Models
         // 第1著者の姓（ソートキー用）
         [NotMapped]
         public string FirstAuthorSortKey
-        {
-            get
-            {
-                string first = AuthorArray.FirstOrDefault() ?? string.Empty;
-                if (string.IsNullOrEmpty(first)) return string.Empty;
-                if (first.Contains(",")) return first.Split(',')[0].Trim();
-                if (first.Contains(" "))  return first.Split(' ')[0].Trim();
-                return first;
-            }
-        }
+            => ExtractLastName(AuthorArray.FirstOrDefault() ?? string.Empty);
 
         // 著者名に日本語文字が含まれるかどうか
         [NotMapped]
-        public bool HasJapaneseAuthors
-            => AuthorArray.Any(a => a.Any(c =>
-                (c >= '\u3040' && c <= '\u309F') ||  // ひらがな
-                (c >= '\u30A0' && c <= '\u30FF') ||  // カタカナ
-                (c >= '\u4E00' && c <= '\u9FFF')));  // 漢字
+        public bool HasJapaneseAuthors => AuthorArray.Any(IsJapaneseName);
 
-        // タグを配列として取得
-        [NotMapped]
-        public string[] TagArray
-        {
-            get { return Tags?.Split(',') ?? new string[0]; }
-        }
+        // カンマ区切り文字列を配列に変換する共通ヘルパー
+        private static string[] SplitComma(string s) => s?.Split(',') ?? Array.Empty<string>();
 
-        // クリニカルエリアを配列として取得
-        [NotMapped]
-        public string[] ClinicalAreaArray
-        {
-            get { return ClinicalArea?.Split(',') ?? new string[0]; }
-        }
-
-        // アプローチを配列として取得
-        [NotMapped]
-        public string[] ApproachArray
-        {
-            get { return Approach?.Split(',') ?? new string[0]; }
-        }
+        [NotMapped] public string[] TagArray          => SplitComma(Tags);
+        [NotMapped] public string[] ClinicalAreaArray => SplitComma(ClinicalArea);
+        [NotMapped] public string[] ApproachArray     => SplitComma(Approach);
 
         // コンストラクタ
         public Paper()
@@ -205,41 +178,21 @@ namespace PaperManagementApp.Models
                     ? string.Join("・", authorList.Select(a => FormatAuthorNameJapanese(a)))
                     : FormatEnglishAuthorList(authorList.Select(a => FormatAuthorNameEnglish(a)).ToList());
 
-            return isJapanese
-                ? BuildJapaneseCitation(authorText)
-                : BuildEnglishCitation(authorText);
+            return BuildCitation(authorText, isJapanese);
         }
 
-        // 日本語文献の引用文字列を組み立て（JPA 3.10.3）
-        // 例: 川上 直秋（2019）. 指先が変える単語の意味　心理学研究, 91(1), 23–33. https://doi.org/xxx
-        private string BuildJapaneseCitation(string authorText)
+        // 引用文字列を組み立て（日英共通、JPA 3.10.2/3.10.3）
+        // 日本語例: 川上 直秋（2019）. 指先が変える単語の意味　心理学研究, 91(1), 23–33. https://doi.org/xxx
+        // 英語例:   Smith, J. (2020). Title. Journal, 10(2), 1–10. https://doi.org/xxx
+        private string BuildCitation(string authorText, bool isJapanese)
         {
-            string volStr = !string.IsNullOrEmpty(Issue)
-                ? $"{Volume}({Issue})"
-                : Volume ?? "";
-
-            string citation = $"{authorText}（{Year}）. {Title}　{Journal}, {volStr}, {Pages}.";
-
+            string vol  = !string.IsNullOrEmpty(Issue) ? $"{Volume}({Issue})" : Volume ?? "";
+            string year = isJapanese ? $"（{Year}）" : $" ({Year})";
+            string body = isJapanese
+                ? $"{authorText}{year}. {Title}　{Journal}, {vol}, {Pages}."
+                : $"{authorText}{year}. {Title}. {Journal}, {vol}, {Pages}.";
             string doi = FormatDOI(DOI);
-            if (doi != null) citation += $" {doi}";
-
-            return citation;
-        }
-
-        // 英語文献の引用文字列を組み立て（JPA 3.10.2）
-        // 例: Smith, J. (2020). Title. Journal, 10(2), 1–10. https://doi.org/xxx
-        private string BuildEnglishCitation(string authorText)
-        {
-            string volStr = !string.IsNullOrEmpty(Issue)
-                ? $"{Volume}({Issue})"
-                : Volume ?? "";
-
-            string citation = $"{authorText} ({Year}). {Title}. {Journal}, {volStr}, {Pages}.";
-
-            string doi = FormatDOI(DOI);
-            if (doi != null) citation += $" {doi}";
-
-            return citation;
+            return doi != null ? $"{body} {doi}" : body;
         }
 
         // 英語著者リストを JPA 形式で結合（20名以下: A, B, & C / 21名以上: A, ..., Z）
