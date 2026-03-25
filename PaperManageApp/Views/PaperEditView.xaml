@@ -194,29 +194,13 @@
                     <!-- 論文内容タブ -->
                     <TabItem Header="論文内容">
                         <StackPanel Margin="10">
-                            <!-- 抄録 -->
-                            <TextBlock Text="抄録" Margin="0,10,0,5"/>
-                            <TextBox x:Name="AbstractTextBox" Height="100" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="5"/>
+                            <!-- 要約 -->
+                            <TextBlock Text="要約" Margin="0,10,0,5"/>
+                            <TextBox x:Name="AbstractTextBox" Height="180" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="5"/>
 
-                            <!-- 問題と目的 -->
-                            <TextBlock Text="問題と目的" Margin="0,10,0,5"/>
-                            <TextBox x:Name="ProblemAndPurposeTextBox" Height="100" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="5"/>
-
-                            <!-- 方法 -->
-                            <TextBlock Text="方法" Margin="0,10,0,5"/>
-                            <TextBox x:Name="MethodTextBox" Height="100" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="5"/>
-
-                            <!-- 結果 -->
-                            <TextBlock Text="結果" Margin="0,10,0,5"/>
-                            <TextBox x:Name="ResultsTextBox" Height="100" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="5"/>
-
-                            <!-- 考察 -->
-                            <TextBlock Text="考察" Margin="0,10,0,5"/>
-                            <TextBox x:Name="DiscussionTextBox" Height="100" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="5"/>
-
-                            <!-- その他メモ -->
-                            <TextBlock Text="その他メモ" Margin="0,10,0,5"/>
-                            <TextBox x:Name="AdditionalNotesTextBox" Height="100" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="5"/>
+                            <!-- メモ -->
+                            <TextBlock Text="メモ" Margin="0,15,0,5"/>
+                            <TextBox x:Name="AdditionalNotesTextBox" Height="180" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="5"/>
                         </StackPanel>
                     </TabItem>
                 </TabControl>
