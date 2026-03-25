@@ -705,6 +705,11 @@ namespace PaperManagementApp.Views
                 // 論文内容
                 _currentPaper.Abstract = AbstractTextBox.Text.Trim();
                 _currentPaper.AdditionalNotes = AdditionalNotesTextBox.Text.Trim();
+                // UIから削除したフィールドはNOT NULL制約のため空文字を維持
+                _currentPaper.ProblemAndPurpose ??= "";
+                _currentPaper.Method ??= "";
+                _currentPaper.Results ??= "";
+                _currentPaper.Discussion ??= "";
 
                 // Notesコレクションを一時的にnullに設定（問題解決のためのテスト）
                 _currentPaper.Notes = null;
