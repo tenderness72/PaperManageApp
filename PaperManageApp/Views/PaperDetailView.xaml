@@ -144,56 +144,20 @@
                     </Border>
                 </Grid>
 
-                <!-- タブコントロール（論文の各セクション） -->
+                <!-- タブコントロール -->
                 <TabControl x:Name="SectionsTabControl" Height="400">
-                    <TabItem Header="概要">
-                        <TextBox x:Name="AbstractTextBox" 
-                                 TextWrapping="Wrap" 
+                    <TabItem Header="要約">
+                        <TextBox x:Name="AbstractTextBox"
+                                 TextWrapping="Wrap"
                                  AcceptsReturn="True"
                                  VerticalScrollBarVisibility="Auto"
                                  Padding="10"
                                  TextChanged="SectionTextBox_TextChanged"/>
                     </TabItem>
 
-                    <TabItem Header="問題と目的">
-                        <TextBox x:Name="ProblemAndPurposeTextBox" 
-                                 TextWrapping="Wrap" 
-                                 AcceptsReturn="True"
-                                 VerticalScrollBarVisibility="Auto"
-                                 Padding="10"
-                                 TextChanged="SectionTextBox_TextChanged"/>
-                    </TabItem>
-
-                    <TabItem Header="方法">
-                        <TextBox x:Name="MethodTextBox" 
-                                 TextWrapping="Wrap" 
-                                 AcceptsReturn="True"
-                                 VerticalScrollBarVisibility="Auto"
-                                 Padding="10"
-                                 TextChanged="SectionTextBox_TextChanged"/>
-                    </TabItem>
-
-                    <TabItem Header="結果">
-                        <TextBox x:Name="ResultsTextBox" 
-                                 TextWrapping="Wrap" 
-                                 AcceptsReturn="True"
-                                 VerticalScrollBarVisibility="Auto"
-                                 Padding="10"
-                                 TextChanged="SectionTextBox_TextChanged"/>
-                    </TabItem>
-
-                    <TabItem Header="考察">
-                        <TextBox x:Name="DiscussionTextBox" 
-                                 TextWrapping="Wrap" 
-                                 AcceptsReturn="True"
-                                 VerticalScrollBarVisibility="Auto"
-                                 Padding="10"
-                                 TextChanged="SectionTextBox_TextChanged"/>
-                    </TabItem>
-
-                    <TabItem Header="その他メモ">
-                        <TextBox x:Name="AdditionalNotesTextBox" 
-                                 TextWrapping="Wrap" 
+                    <TabItem Header="メモ">
+                        <TextBox x:Name="AdditionalNotesTextBox"
+                                 TextWrapping="Wrap"
                                  AcceptsReturn="True"
                                  VerticalScrollBarVisibility="Auto"
                                  Padding="10"

@@ -68,12 +68,8 @@ namespace PaperManagementApp.Views
                 InTextCitationTextBox.Text = _currentPaper.GetInTextCitation();
                 FullCitationTextBox.Text = _currentPaper.GetFullCitation();
 
-                // 各セクションの内容
+                // 論文内容
                 AbstractTextBox.Text = _currentPaper.Abstract;
-                ProblemAndPurposeTextBox.Text = _currentPaper.ProblemAndPurpose;
-                MethodTextBox.Text = _currentPaper.Method;
-                ResultsTextBox.Text = _currentPaper.Results;
-                DiscussionTextBox.Text = _currentPaper.Discussion;
                 AdditionalNotesTextBox.Text = _currentPaper.AdditionalNotes;
 
                 // PDFボタンの表示制御
@@ -116,13 +112,13 @@ namespace PaperManagementApp.Views
         {
             try
             {
-                // 各セクションの内容を保存
+                // 論文内容を保存
                 _currentPaper.Abstract = AbstractTextBox.Text;
-                _currentPaper.ProblemAndPurpose = ProblemAndPurposeTextBox.Text;
-                _currentPaper.Method = MethodTextBox.Text;
-                _currentPaper.Results = ResultsTextBox.Text;
-                _currentPaper.Discussion = DiscussionTextBox.Text;
                 _currentPaper.AdditionalNotes = AdditionalNotesTextBox.Text;
+                _currentPaper.ProblemAndPurpose ??= "";
+                _currentPaper.Method ??= "";
+                _currentPaper.Results ??= "";
+                _currentPaper.Discussion ??= "";
 
                 // データベースを更新
                 await _paperService.UpdatePaperAsync(_currentPaper);
