@@ -81,20 +81,17 @@
                            Foreground="White" 
                            Margin="5,15,0,5"/>
 
-                <ComboBox x:Name="YearFilterComboBox" 
-                          Margin="5,5" 
-                          SelectionChanged="FilterComboBox_SelectionChanged"
-                          DisplayMemberPath="Year"/>
+                <ComboBox x:Name="YearFilterComboBox"
+                          Margin="5,5"
+                          SelectionChanged="FilterComboBox_SelectionChanged"/>
 
-                <ComboBox x:Name="JournalFilterComboBox" 
-                          Margin="5,5" 
-                          SelectionChanged="FilterComboBox_SelectionChanged"
-                          DisplayMemberPath="Journal"/>
+                <ComboBox x:Name="JournalFilterComboBox"
+                          Margin="5,5"
+                          SelectionChanged="FilterComboBox_SelectionChanged"/>
 
                 <ComboBox x:Name="ClinicalAreaFilterComboBox"
                           Margin="5,5"
-                          SelectionChanged="FilterComboBox_SelectionChanged"
-                          DisplayMemberPath="ClinicalArea"/>
+                          SelectionChanged="FilterComboBox_SelectionChanged"/>
 
                 <ComboBox x:Name="TagFilterComboBox"
                           Margin="5,5"
