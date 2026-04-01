@@ -115,10 +115,6 @@ namespace PaperManagementApp.Views
                 // 論文内容を保存
                 _currentPaper.Abstract = AbstractTextBox.Text;
                 _currentPaper.AdditionalNotes = AdditionalNotesTextBox.Text;
-                _currentPaper.ProblemAndPurpose ??= "";
-                _currentPaper.Method ??= "";
-                _currentPaper.Results ??= "";
-                _currentPaper.Discussion ??= "";
 
                 // データベースを更新
                 await _paperService.UpdatePaperAsync(_currentPaper);
@@ -290,12 +286,17 @@ namespace PaperManagementApp.Views
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    // fire-and-forget で保存（ナビゲーション後も完了する）
-                    _ = SavePaperAsync();
+                    // ナビゲーションをいったんキャンセルし、保存完了後に戻る
+                    e.Cancel = true;
+                    NavigationService.Navigating -= NavigationService_Navigating;
+                    _isDataDirty = false;
+                    await SavePaperAsync();
+                    NavigationService?.GoBack();
+                    return;
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
-                    e.Cancel = true; // ナビゲーションをキャンセル
+                    e.Cancel = true;
                     return;
                 }
             }
