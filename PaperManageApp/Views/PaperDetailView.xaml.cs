@@ -276,7 +276,7 @@ namespace PaperManagementApp.Views
 
         // NavigatingCancelEventArgsを処理するイベントハンドラー
         // ナビゲーションのキャンセルが必要なため同期で動作する
-        private void NavigationService_Navigating(object sender, NavigatingCancelEventArgs e)
+        private async void NavigationService_Navigating(object sender, NavigatingCancelEventArgs e)
         {
             // 未保存の変更があれば確認
             if (_isDataDirty)
