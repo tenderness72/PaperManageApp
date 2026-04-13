@@ -89,9 +89,7 @@
                   RowHeaderWidth="0"
                   Background="White"
                   AlternatingRowBackground="#f9f9f9"
-                  AllowDrop="True"
-                  DragOver="PapersDataGrid_DragOver"
-                  Drop="PapersDataGrid_Drop">
+                  AllowDrop="False">
 
             <DataGrid.Columns>
                 <!-- 選択チェックボックス列 -->
