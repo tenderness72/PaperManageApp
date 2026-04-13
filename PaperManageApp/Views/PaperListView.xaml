@@ -8,7 +8,8 @@
      d:DesignHeight="650" d:DesignWidth="900"
      Title="論文一覧">
 
-    <Grid AllowDrop="True"
+    <Grid Background="Transparent"
+          AllowDrop="True"
           DragOver="RootGrid_DragOver"
           DragEnter="RootGrid_DragEnter"
           DragLeave="RootGrid_DragLeave"
@@ -197,29 +198,6 @@
               Visibility="Collapsed"
               Panel.ZIndex="999"
               Background="#CC1a252f">
-            <Grid.Triggers>
-                <EventTrigger RoutedEvent="Grid.Loaded">
-                    <BeginStoryboard>
-                        <Storyboard x:Name="PulseStoryboard" RepeatBehavior="Forever" AutoReverse="True">
-                            <DoubleAnimation
-                                Storyboard.TargetName="OverlayIcon"
-                                Storyboard.TargetProperty="Opacity"
-                                From="0.7" To="1.0"
-                                Duration="0:0:0.6"/>
-                            <DoubleAnimation
-                                Storyboard.TargetName="OverlayIcon"
-                                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                                From="1.0" To="1.08"
-                                Duration="0:0:0.6"/>
-                            <DoubleAnimation
-                                Storyboard.TargetName="OverlayIcon"
-                                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                                From="1.0" To="1.08"
-                                Duration="0:0:0.6"/>
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Grid.Triggers>
 
             <StackPanel x:Name="OverlayIcon"
                         HorizontalAlignment="Center"

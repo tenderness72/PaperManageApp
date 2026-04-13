@@ -8,11 +8,15 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace PaperManagementApp.Views
 {
     public partial class PaperListView : Page
     {
+        private Storyboard _pulseStoryboard;
+
         private PaperService _paperService;
         private List<Paper> _allPapers;
         private List<Paper> _displayedPapers;
@@ -27,22 +31,41 @@ namespace PaperManagementApp.Views
         public PaperListView()
         {
             InitializeComponent();
-
             _paperService = new PaperService();
             _showFavoritesOnly = false;
-
-            Loaded += async (s, e) => await LoadPapersAsync();
+            Loaded += async (s, e) => { await LoadPapersAsync(); InitPulseAnimation(); };
         }
 
         // コンストラクタ（お気に入りのみ表示）
         public PaperListView(bool favoritesOnly)
         {
             InitializeComponent();
-
             _paperService = new PaperService();
             _showFavoritesOnly = favoritesOnly;
 
             Loaded += async (s, e) => await LoadPapersAsync();
+        }
+
+        // ドラッグオーバーレイのパルスアニメーションを初期化
+        private void InitPulseAnimation()
+        {
+            _pulseStoryboard = new Storyboard
+            {
+                RepeatBehavior = RepeatBehavior.Forever,
+                AutoReverse = true
+            };
+
+            void AddAnim(PropertyPath path, double from, double to)
+            {
+                var anim = new DoubleAnimation(from, to, TimeSpan.FromSeconds(0.6));
+                Storyboard.SetTarget(anim, OverlayIcon);
+                Storyboard.SetTargetProperty(anim, path);
+                _pulseStoryboard.Children.Add(anim);
+            }
+
+            AddAnim(new PropertyPath(UIElement.OpacityProperty), 0.75, 1.0);
+            AddAnim(new PropertyPath("RenderTransform.ScaleX"), 1.0, 1.08);
+            AddAnim(new PropertyPath("RenderTransform.ScaleY"), 1.0, 1.08);
         }
 
         // 論文データの読み込み
@@ -168,6 +191,7 @@ namespace PaperManagementApp.Views
             if (IsPdfDrag(e))
             {
                 DragOverlay.Visibility = Visibility.Visible;
+                _pulseStoryboard?.Begin();
                 e.Effects = DragDropEffects.Copy;
                 e.Handled = true;
             }
@@ -195,12 +219,14 @@ namespace PaperManagementApp.Views
                 pos.X > DragOverlay.ActualWidth || pos.Y > DragOverlay.ActualHeight)
             {
                 DragOverlay.Visibility = Visibility.Collapsed;
+                _pulseStoryboard?.Stop();
             }
         }
 
         private void RootGrid_Drop(object sender, DragEventArgs e)
         {
             DragOverlay.Visibility = Visibility.Collapsed;
+            _pulseStoryboard?.Stop();
 
             if (!IsPdfDrag(e)) return;
 
