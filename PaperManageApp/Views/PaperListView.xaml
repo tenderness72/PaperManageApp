@@ -233,11 +233,6 @@
                            FontWeight="Bold"
                            Foreground="White"
                            HorizontalAlignment="Center"/>
-                <TextBlock Text=".pdf ファイルを放してください"
-                           FontSize="14"
-                           Foreground="#aab8c2"
-                           HorizontalAlignment="Center"
-                           Margin="0,8,0,0"/>
             </StackPanel>
         </Grid>
     </Grid>
