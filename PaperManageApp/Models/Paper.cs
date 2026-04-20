@@ -51,18 +51,16 @@ namespace PaperManagementApp.Models
 
         public string? Tags { get; set; }  // タグ（カンマ区切り）
 
-        // メモ系（指定された論文セクション）
-        public string? Abstract { get; set; }  // 概要
+        // 論文内容
+        public string? Abstract { get; set; }  // 要約
 
-        public string? ProblemAndPurpose { get; set; }  // 問題と目的
+        public string? AdditionalNotes { get; set; }  // メモ
 
-        public string? Method { get; set; }  // 方法
-
-        public string? Results { get; set; }  // 結果
-
-        public string? Discussion { get; set; }  // 考察
-
-        public string? AdditionalNotes { get; set; }  // その他メモ
+        // DBのNOT NULL制約維持用（UIには非表示・常に空文字）
+        public string ProblemAndPurpose { get; set; } = "";
+        public string Method { get; set; } = "";
+        public string Results { get; set; } = "";
+        public string Discussion { get; set; } = "";
 
         // 管理用
         public DateTime CreatedAt { get; set; }

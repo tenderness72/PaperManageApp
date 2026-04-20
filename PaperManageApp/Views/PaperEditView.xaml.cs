@@ -556,12 +556,8 @@ namespace PaperManagementApp.Views
             foreach (var tag in paper.TagArray.Where(t => !string.IsNullOrEmpty(t)))
                 AddTagChip(tag);
 
-            // 論文セクションの内容
+            // 論文内容
             AbstractTextBox.Text = paper.Abstract;
-            ProblemAndPurposeTextBox.Text = paper.ProblemAndPurpose;
-            MethodTextBox.Text = paper.Method;
-            ResultsTextBox.Text = paper.Results;
-            DiscussionTextBox.Text = paper.Discussion;
             AdditionalNotesTextBox.Text = paper.AdditionalNotes;
         }
 
@@ -706,12 +702,8 @@ namespace PaperManagementApp.Views
                 if (!string.IsNullOrEmpty(uncommitted)) AddTagChip(uncommitted);
                 _currentPaper.Tags = string.Join(",", GetCurrentTags());
 
-                // 論文セクション
+                // 論文内容
                 _currentPaper.Abstract = AbstractTextBox.Text.Trim();
-                _currentPaper.ProblemAndPurpose = ProblemAndPurposeTextBox.Text.Trim();
-                _currentPaper.Method = MethodTextBox.Text.Trim();
-                _currentPaper.Results = ResultsTextBox.Text.Trim();
-                _currentPaper.Discussion = DiscussionTextBox.Text.Trim();
                 _currentPaper.AdditionalNotes = AdditionalNotesTextBox.Text.Trim();
 
                 // Notesコレクションを一時的にnullに設定（問題解決のためのテスト）

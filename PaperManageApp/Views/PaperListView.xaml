@@ -8,7 +8,13 @@
      d:DesignHeight="650" d:DesignWidth="900"
      Title="論文一覧">
 
-    <Grid Margin="20">
+    <Grid Background="Transparent"
+          AllowDrop="True"
+          DragOver="RootGrid_DragOver"
+          DragEnter="RootGrid_DragEnter"
+          DragLeave="RootGrid_DragLeave"
+          Drop="RootGrid_Drop">
+        <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -84,9 +90,7 @@
                   RowHeaderWidth="0"
                   Background="White"
                   AlternatingRowBackground="#f9f9f9"
-                  AllowDrop="True"
-                  DragOver="PapersDataGrid_DragOver"
-                  Drop="PapersDataGrid_Drop">
+                  AllowDrop="False">
 
             <DataGrid.Columns>
                 <!-- 選択チェックボックス列 -->
@@ -187,5 +191,49 @@
                 </ContextMenu>
             </DataGrid.ContextMenu>
         </DataGrid>
+        </Grid>
+
+        <!-- PDFドラッグ中オーバーレイ -->
+        <Grid x:Name="DragOverlay"
+              Visibility="Collapsed"
+              Panel.ZIndex="999"
+              Background="#CC1a252f">
+
+            <StackPanel x:Name="OverlayIcon"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        RenderTransformOrigin="0.5,0.5">
+                <StackPanel.RenderTransform>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </StackPanel.RenderTransform>
+
+                <!-- 論文アイコン（角折れ書類） -->
+                <Viewbox Width="120" Height="120" Margin="0,0,0,20">
+                    <Canvas Width="100" Height="120">
+                        <!-- 書類本体 -->
+                        <Path Fill="White" Opacity="0.95"
+                              Data="M10,0 L70,0 L100,30 L100,120 L10,120 Z"/>
+                        <!-- 折り返し -->
+                        <Path Fill="#aab8c2"
+                              Data="M70,0 L70,30 L100,30 Z"/>
+                        <!-- 文字線 -->
+                        <Line X1="22" Y1="50" X2="78" Y2="50" Stroke="#3498db" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        <Line X1="22" Y1="65" X2="78" Y2="65" Stroke="#3498db" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        <Line X1="22" Y1="80" X2="55" Y2="80" Stroke="#3498db" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        <!-- ＋バッジ -->
+                        <Ellipse Canvas.Left="55" Canvas.Top="75" Width="44" Height="44" Fill="#2ecc71"/>
+                        <TextBlock Canvas.Left="64" Canvas.Top="78"
+                                   Text="+" FontSize="28" FontWeight="Bold"
+                                   Foreground="White" TextAlignment="Center"/>
+                    </Canvas>
+                </Viewbox>
+
+                <TextBlock Text="PDFをドロップして追加"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>

@@ -68,12 +68,8 @@ namespace PaperManagementApp.Views
                 InTextCitationTextBox.Text = _currentPaper.GetInTextCitation();
                 FullCitationTextBox.Text = _currentPaper.GetFullCitation();
 
-                // 各セクションの内容
+                // 論文内容
                 AbstractTextBox.Text = _currentPaper.Abstract;
-                ProblemAndPurposeTextBox.Text = _currentPaper.ProblemAndPurpose;
-                MethodTextBox.Text = _currentPaper.Method;
-                ResultsTextBox.Text = _currentPaper.Results;
-                DiscussionTextBox.Text = _currentPaper.Discussion;
                 AdditionalNotesTextBox.Text = _currentPaper.AdditionalNotes;
 
                 // PDFボタンの表示制御
@@ -116,12 +112,8 @@ namespace PaperManagementApp.Views
         {
             try
             {
-                // 各セクションの内容を保存
+                // 論文内容を保存
                 _currentPaper.Abstract = AbstractTextBox.Text;
-                _currentPaper.ProblemAndPurpose = ProblemAndPurposeTextBox.Text;
-                _currentPaper.Method = MethodTextBox.Text;
-                _currentPaper.Results = ResultsTextBox.Text;
-                _currentPaper.Discussion = DiscussionTextBox.Text;
                 _currentPaper.AdditionalNotes = AdditionalNotesTextBox.Text;
 
                 // データベースを更新
@@ -284,7 +276,7 @@ namespace PaperManagementApp.Views
 
         // NavigatingCancelEventArgsを処理するイベントハンドラー
         // ナビゲーションのキャンセルが必要なため同期で動作する
-        private void NavigationService_Navigating(object sender, NavigatingCancelEventArgs e)
+        private async void NavigationService_Navigating(object sender, NavigatingCancelEventArgs e)
         {
             // 未保存の変更があれば確認
             if (_isDataDirty)
@@ -294,12 +286,17 @@ namespace PaperManagementApp.Views
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    // fire-and-forget で保存（ナビゲーション後も完了する）
-                    _ = SavePaperAsync();
+                    // ナビゲーションをいったんキャンセルし、保存完了後に戻る
+                    e.Cancel = true;
+                    NavigationService.Navigating -= NavigationService_Navigating;
+                    _isDataDirty = false;
+                    await SavePaperAsync();
+                    NavigationService?.GoBack();
+                    return;
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
-                    e.Cancel = true; // ナビゲーションをキャンセル
+                    e.Cancel = true;
                     return;
                 }
             }

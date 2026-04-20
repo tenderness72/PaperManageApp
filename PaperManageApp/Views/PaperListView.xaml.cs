@@ -8,11 +8,15 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace PaperManagementApp.Views
 {
     public partial class PaperListView : Page
     {
+        private Storyboard _pulseStoryboard;
+
         private PaperService _paperService;
         private List<Paper> _allPapers;
         private List<Paper> _displayedPapers;
@@ -27,22 +31,41 @@ namespace PaperManagementApp.Views
         public PaperListView()
         {
             InitializeComponent();
-
             _paperService = new PaperService();
             _showFavoritesOnly = false;
-
-            Loaded += async (s, e) => await LoadPapersAsync();
+            Loaded += async (s, e) => { await LoadPapersAsync(); InitPulseAnimation(); };
         }
 
         // コンストラクタ（お気に入りのみ表示）
         public PaperListView(bool favoritesOnly)
         {
             InitializeComponent();
-
             _paperService = new PaperService();
             _showFavoritesOnly = favoritesOnly;
 
             Loaded += async (s, e) => await LoadPapersAsync();
+        }
+
+        // ドラッグオーバーレイのパルスアニメーションを初期化
+        private void InitPulseAnimation()
+        {
+            _pulseStoryboard = new Storyboard
+            {
+                RepeatBehavior = RepeatBehavior.Forever,
+                AutoReverse = true
+            };
+
+            void AddAnim(PropertyPath path, double from, double to)
+            {
+                var anim = new DoubleAnimation(from, to, TimeSpan.FromSeconds(0.6));
+                Storyboard.SetTarget(anim, OverlayIcon);
+                Storyboard.SetTargetProperty(anim, path);
+                _pulseStoryboard.Children.Add(anim);
+            }
+
+            AddAnim(new PropertyPath(UIElement.OpacityProperty), 0.75, 1.0);
+            AddAnim(new PropertyPath("RenderTransform.ScaleX"), 1.0, 1.08);
+            AddAnim(new PropertyPath("RenderTransform.ScaleY"), 1.0, 1.08);
         }
 
         // 論文データの読み込み
@@ -155,44 +178,73 @@ namespace PaperManagementApp.Views
             }
         }
 
-        // PDFドラッグ＆ドロップ
-        private void PapersDataGrid_DragOver(object sender, DragEventArgs e)
+        // PDFドラッグ＆ドロップ — ルートGrid用（オーバーレイ表示）
+        private static bool IsPdfDrag(DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                var files = e.Data.GetData(DataFormats.FileDrop) as string[];
-                if (files != null && files.Any(f => f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)))
-                {
-                    e.Effects = DragDropEffects.Copy;
-                    e.Handled = true;
-                    return;
-                }
-            }
-            e.Effects = DragDropEffects.None;
-            e.Handled = true;
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return false;
+            var files = e.Data.GetData(DataFormats.FileDrop) as string[];
+            return files != null && files.Any(f => f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase));
         }
 
-        private void PapersDataGrid_Drop(object sender, DragEventArgs e)
+        private void RootGrid_DragEnter(object sender, DragEventArgs e)
         {
-            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+            if (IsPdfDrag(e))
+            {
+                DragOverlay.Visibility = Visibility.Visible;
+                _pulseStoryboard?.Begin();
+                e.Effects = DragDropEffects.Copy;
+                e.Handled = true;
+            }
+        }
 
-            var files = e.Data.GetData(DataFormats.FileDrop) as string[];
-            if (files == null) return;
+        private void RootGrid_DragOver(object sender, DragEventArgs e)
+        {
+            if (IsPdfDrag(e))
+            {
+                e.Effects = DragDropEffects.Copy;
+                e.Handled = true;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+                e.Handled = true;
+            }
+        }
 
-            var pdfFiles = files
+        private void RootGrid_DragLeave(object sender, DragEventArgs e)
+        {
+            // ウィンドウ外に出たときだけ非表示（子要素への移動は無視）
+            var pos = e.GetPosition(DragOverlay);
+            if (pos.X < 0 || pos.Y < 0 ||
+                pos.X > DragOverlay.ActualWidth || pos.Y > DragOverlay.ActualHeight)
+            {
+                DragOverlay.Visibility = Visibility.Collapsed;
+                _pulseStoryboard?.Stop();
+            }
+        }
+
+        private void RootGrid_Drop(object sender, DragEventArgs e)
+        {
+            DragOverlay.Visibility = Visibility.Collapsed;
+            _pulseStoryboard?.Stop();
+
+            if (!IsPdfDrag(e)) return;
+
+            var files = (e.Data.GetData(DataFormats.FileDrop) as string[])!
                 .Where(f => f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) && File.Exists(f))
                 .ToArray();
 
-            if (pdfFiles.Length == 0) return;
+            if (files.Length == 0) return;
 
-            if (pdfFiles.Length > 1)
-            {
-                MessageBox.Show($"{pdfFiles.Length} 件のPDFがドロップされました。最初のファイルのみ処理します。",
+            if (files.Length > 1)
+                MessageBox.Show($"{files.Length} 件のPDFがドロップされました。最初のファイルのみ処理します。",
                     "情報", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
 
-            NavigationService.Navigate(new PaperEditView(pdfFiles[0]));
+            NavigationService.Navigate(new PaperEditView(files[0]));
         }
+
+        // DataGrid側のハンドラーは削除（ルートGridに統合）
+        private void PapersDataGrid_DragOver(object sender, DragEventArgs e) { }
 
         // 新規追加ボタンクリック
         private void AddButton_Click(object sender, RoutedEventArgs e)
