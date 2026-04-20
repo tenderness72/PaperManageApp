@@ -56,6 +56,12 @@ namespace PaperManagementApp.Models
 
         public string? AdditionalNotes { get; set; }  // メモ
 
+        // DBのNOT NULL制約維持用（UIには非表示・常に空文字）
+        public string ProblemAndPurpose { get; set; } = "";
+        public string Method { get; set; } = "";
+        public string Results { get; set; } = "";
+        public string Discussion { get; set; } = "";
+
         // 管理用
         public DateTime CreatedAt { get; set; }
 
